@@ -160,6 +160,15 @@ promediado por chip (métrica de los autores de Sen1Floods11), F1, precisión, r
 \paragraph{Ablación (b): función de pérdida.} Con la mejor estrategia de (a), elegida por validación,
 se entrena con BCE sola y con Dice sola.
 
+\paragraph{Dos rondas de entrenamiento.} En la \textbf{ronda 1} cada experimento se entrenó una vez
+(semilla 0), y con ella se eligió la estrategia de datos para la ablación (b). Las curvas mostraron
+que el IoU de validación oscila mucho entre épocas consecutivas (por ejemplo, de 0.61 a 0.46 en
+\emph{gold}), así que una diferencia de pocas centésimas entre variantes podía deberse al azar de la
+inicialización y del muestreo. En la \textbf{ronda 2} repetimos los 5 experimentos con las semillas 1 y
+2. Todos los resultados se reportan como \textbf{media $\pm$ desviación estándar sobre 3
+entrenamientos}, y para las figuras cualitativas se usa el entrenamiento con mejor IoU de validación del
+mejor experimento. En una GPU T4, cada entrenamiento de 40 épocas tarda unos 6 minutos.
+
 % ---------------------------------------------------------------------------------------------
 \section{Resultados}
 
@@ -219,31 +228,53 @@ las inundaciones son someras y con vegetación que asoma sobre el agua.
 % ---------------------------------------------------------------------------------------------
 \section{Generalización geográfica: Bolivia y Lima}
 
-Frente al test en distribución (IoU \RES{0.xx}), el modelo pierde \RES{x} puntos en Bolivia
-(\RES{0.xx}) y colapsa en Lima (\RES{0.xx}; precisión \RES{0.xx}, recall \RES{0.xx}). Bolivia tiene
-etiquetas hechas con el mismo protocolo que el entrenamiento, así que su brecha moderada mide solo el
-cambio de región, y se explica sobre todo por omisión (recall \RES{0.66}). La caída en Lima es de otra
-magnitud, y la atribuimos a las siguientes hipótesis:
+\paragraph{Bolivia: sin brecha apreciable.} En el evento retenido el mejor modelo obtiene un IoU de
+\RES{0.xx}, igual o superior al del test en distribución (\RES{0.xx}). Bolivia es una inundación fluvial
+en llanura, con agua abierta y calma, del mismo tipo que la mayoría de los eventos de entrenamiento, y
+sus etiquetas siguen el mismo protocolo. Por lo tanto, cambiar de región \emph{por sí solo} no degrada
+al modelo cuando el fenómeno físico es el mismo.
+
+\paragraph{Lima: colapso.} En la región peruana todos los modelos caen a un IoU de \RES{0.00x--0.0xx},
+con precisión y recall por debajo de \RES{5\,\%}. Para separar el fallo del modelo de un problema de los
+datos, comparamos la distribución de $\sigma^0$ de los píxeles que la referencia marca como agua frente
+a los de tierra (Fig.~\ref{fig:backscatter}). En Sen1Floods11 y en Bolivia el agua es unos
+\textbf{8\,dB más oscura} que la tierra en VV (medianas de $-17.6$ frente a $-9.5$\,dB en test). En Lima
+las dos distribuciones \textbf{se superponen casi por completo} ($-8.7$ frente a $-9.0$\,dB en VV y
+$-16.4$ frente a $-16.1$\,dB en VH). Sobre la escena del 17 de marzo, la ``inundación'' de EMSN038 no
+tiene la firma del agua abierta, así que ningún clasificador que use solo SAR podría separarla de la
+tierra. La brecha no se explica, entonces, por falta de capacidad del modelo, sino por las siguientes
+causas:
 
 \begin{enumerate}
   \item \textbf{Tipo de inundación y cobertura urbana.} En Lima no hubo una lámina de agua calma, sino
   huaicos y desbordes de agua turbulenta con mucho sedimento en cauces encañonados y zonas urbanas. El
   agua rugosa devuelve energía al sensor y no se ve oscura, y en la zona urbana inundada (Huachipa,
   Carapongo) el doble rebote entre la fachada y el agua \emph{aumenta} la
-  retrodispersión~\cite{mason2010urban}. Ninguna de esas firmas aparece en los eventos de entrenamiento,
-  que son mayormente rurales y llanos.
-  \item \textbf{Desajuste de la referencia.} La SAR es del 17 de marzo y la delineación óptica del 18 y
-  21, con el agua ya en retroceso. Además, la capa \emph{Potential Maximum Flood Extent} delinea la
-  extensión \emph{máxima} afectada, incluidas zonas con lodo y huellas de la crecida, no solo el agua
-  visible en un instante. Parte de la ``omisión'' es, en realidad, desacuerdo de criterio.
-  \item \textbf{Geometría y normalización del radar.} El relieve de las quebradas produce sombra de
-  radar e inversión por relieve (\emph{layover}) que el modelo nunca vio con esta intensidad, y nuestra
-  conversión aproximada de $\gamma^0$ a $\sigma^0$~\cite{small2011flattening} puede dejar un sesgo de
-  1--2\,dB respecto de los datos de entrenamiento.
-  \item \textbf{Escala.} El agua de referencia ocupa en promedio \RES{~2\,\%} de cada chip y se reparte
-  en franjas de pocas decenas de metros, al límite de la resolución de 10\,m, donde los bordes pesan
-  mucho en el IoU.
+  retrodispersión~\cite{mason2010urban}. La Fig.~\ref{fig:backscatter} lo confirma: entre los píxeles de
+  ``agua'' de Lima hay \emph{más} retornos saturados (pico cerca de $+1$\,dB) que entre los de tierra.
+  Ninguna de esas firmas aparece en los eventos de entrenamiento, que son mayormente rurales y llanos.
+  \item \textbf{Desajuste temporal y de criterio de la referencia.} La SAR es del 17 de marzo y la
+  delineación óptica del 18 y 21, con el agua ya en retroceso. Además, la capa \emph{Potential Maximum
+  Flood Extent} delinea la extensión \emph{máxima} afectada, incluidas zonas con lodo y huellas de la
+  crecida, no solo el agua visible en un instante. Gran parte de la ``omisión'' es, en realidad,
+  desacuerdo de criterio entre la etiqueta y lo que el sensor puede ver.
+  \item \textbf{Geometría y normalización del radar (efecto menor).} El relieve de las quebradas produce
+  sombra de radar e inversión por relieve (\emph{layover}), fuente de falsos positivos. En cambio, la
+  conversión aproximada $\gamma^0\to\sigma^0$~\cite{small2011flattening} no parece la causa principal:
+  la tierra de Lima ($-9.0$\,dB en VV) tiene niveles muy parecidos a los de Sen1Floods11 ($-9.5$\,dB).
+  \item \textbf{Escala.} El agua de referencia ocupa en promedio un 3\,\% de cada chip y se reparte en
+  franjas de pocas decenas de metros, al límite de la resolución de 10\,m, donde los bordes pesan mucho
+  en el IoU.
 \end{enumerate}
+
+\begin{figure}[t]
+  \centering
+  \fig{backscatter.png}{0.95\linewidth}
+  \caption{Distribución de $\sigma^0$ (dB) de los píxeles etiquetados como agua (azul) y como tierra
+  (naranja). En Sen1Floods11 y en Bolivia el agua es claramente más oscura; en Lima, la referencia
+  EMSN038 y la tierra son indistinguibles en ambas polarizaciones.}
+  \label{fig:backscatter}
+\end{figure}
 
 % ---------------------------------------------------------------------------------------------
 \section{Análisis cualitativo de errores característicos del SAR}
