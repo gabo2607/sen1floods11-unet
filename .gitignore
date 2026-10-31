@@ -1,0 +1,14 @@
+/data/
+/runs*/
+!runs/figures/
+*.pt
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+AVANCE.md
+report/*.aux
+report/*.log
+report/*.out
+report/*.fls
+report/*.fdb_latexmk
+report/*.synctex.gz
