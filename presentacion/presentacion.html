@@ -188,7 +188,7 @@ tr.hl td{background:var(--cream);font-weight:700}
     <p class="small" style="margin-top:5px">Media ± desviación estándar sobre <span data-i="seeds">3</span> semillas. Resaltado: el mejor por IoU de validación.</p>
     <div class="row" style="margin-top:12px">
       <div class="card alert"><h3>(a) Datos: no, a igual cómputo</h3><p>Mezclar débiles es lo peor: 4 de cada 5 chips que ve la red traen los errores del umbral de Otsu. Preentrenar y afinar recupera casi todo, pero no supera a los dorados solos.</p></div>
-      <div class="card"><h3>(b) Pérdida</h3><p>BCE+Dice equilibra precisión y recall. BCE sola es más conservadora (más precisión, menos recall) y Dice sola, al revés.</p></div>
+      <div class="card"><h3>(b) Pérdida: empate</h3><p>BCE sola y BCE+Dice empatan en validación, pero BCE varía 4 veces más entre semillas y rinde menos por chip y en Bolivia. Con una sola semilla habríamos concluido otra cosa.</p></div>
       <div class="card"><h3>IoU global vs. por chip</h3><p>El IoU por chip es menor: en chips con poca agua, unos pocos píxeles errados hunden el cociente.</p></div>
     </div>
   </div>
@@ -229,9 +229,9 @@ tr.hl td{background:var(--cream);font-weight:700}
   <div class="body">
     <h2>Bolivia sí, Lima no: el “agua” de Lima se ve como tierra</h2>
     <div class="row" style="margin-bottom:12px">
-      <div class="stat"><div class="v" data-m="gold.test"></div><div class="l">IoU test (eventos vistos)</div></div>
-      <div class="stat"><div class="v" data-m="gold.bol"></div><div class="l">IoU Bolivia (evento retenido): sin brecha</div></div>
-      <div class="stat hi"><div class="v" data-m="gold.lima"></div><div class="l">IoU Lima 2017: colapso de todos los modelos</div></div>
+      <div class="stat"><div class="v" data-m="best.test"></div><div class="l">IoU test (eventos vistos)</div></div>
+      <div class="stat"><div class="v" data-m="best.bol"></div><div class="l">IoU Bolivia (evento retenido): brecha pequeña</div></div>
+      <div class="stat hi"><div class="v" data-m="best.lima"></div><div class="l">IoU Lima 2017: colapso de todos los modelos</div></div>
     </div>
     <div class="row" style="gap:18px;align-items:flex-start">
       <img class="fig" src="img/backscatter.png" alt="Distribución de retrodispersión agua vs. tierra" style="width:520px">
@@ -252,8 +252,8 @@ tr.hl td{background:var(--cream);font-weight:700}
 <section class="slide" data-sec="Conclusiones">
   <div class="body">
     <h2>Conclusiones</h2>
-    <div class="concl"><div class="n">01</div><div class="t">Una U-Net propia, solo con radar, logra un IoU de <b data-m="gold.test"></b> en el test dorado; su error típico es la omisión.</div></div>
-    <div class="concl"><div class="n">02</div><div class="t">A igual cómputo, las etiquetas débiles no ayudaron: mezclarlas empeora y preentrenar + afinar apenas empata. Tres semillas lo confirman.</div></div>
+    <div class="concl"><div class="n">01</div><div class="t">Una U-Net propia, solo con radar, logra un IoU de <b data-m="best.test"></b> en el test dorado; su error típico es la omisión.</div></div>
+    <div class="concl"><div class="n">02</div><div class="t">A igual cómputo, las etiquetas débiles no ayudaron: mezclarlas resta ~0.07 de IoU en las tres semillas. La pérdida, en cambio, casi no importa: BCE y BCE+Dice empatan.</div></div>
     <div class="concl"><div class="n">03</div><div class="t">Generaliza a otra inundación de llanura (Bolivia), pero no a Lima 2017: allí el agua no se ve oscura en el radar y la etiqueta es de otra fecha.</div></div>
     <div class="concl"><div class="n">04</div><div class="t">Para el Perú: afinar con ejemplos locales y sumar elevación (HAND) u óptico antes de confiar en un modelo entrenado en otras regiones.</div></div>
     <div style="font:700 22px var(--head);color:var(--uni);margin-top:16px">Gracias.</div>
@@ -276,7 +276,7 @@ tr.hl td{background:var(--cream);font-weight:700}
   });
   var R=window.R; if(!R) return;
   function fx(v,d){ return (v==null||isNaN(v))?"—":Number(v).toFixed(d); }
-  function stat(path){ var p=path.split("."); return R.exp[p[0]] ? R.exp[p[0]][p[1]] : null; }
+  function stat(path){ var p=path.split("."); if(p[0]==="best") p[0]=R.best; return R.exp[p[0]] ? R.exp[p[0]][p[1]] : null; }
   function get(path){ return path.split(".").reduce(function(o,k){return o==null?o:o[k];}, R); }
   document.querySelectorAll("[data-pm]").forEach(function(el){
     var s=stat(el.dataset.pm); if(!s) return;

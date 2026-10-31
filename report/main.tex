@@ -22,8 +22,8 @@
 % Marca los valores que dependen de los resultados finales de Colab
 \newcommand{\RES}[1]{\textcolor{red}{#1}}
 % Figura que no rompe la compilación si aún no existe el archivo
-\newcommand{\fig}[2]{\IfFileExists{../runs/figures/#1}{\includegraphics[width=#2]{#1}}{\fbox{\parbox{#2}{\centering\small\RES{[falta \detokenize{#1}]}}}}}
-\graphicspath{{../runs/figures/}}
+\newcommand{\fig}[2]{\IfFileExists{figures/#1}{\includegraphics[width=#2]{#1}}{\fbox{\parbox{#2}{\centering\small\RES{[falta \detokenize{#1}]}}}}}
+\graphicspath{{figures/}}
 
 \title{Mapeo de inundaciones con Sentinel-1 y una U-Net:\\ etiquetas doradas vs.\ débiles y generalización a Lima 2017}
 
@@ -41,10 +41,10 @@
 El radar de apertura sintética (SAR) de Sentinel-1 atraviesa nubes y opera de noche, por lo que es la
 fuente de facto para mapear inundaciones durante la emergencia. Implementamos desde cero en PyTorch una
 U-Net que segmenta agua a partir de las bandas VV y VH, y la entrenamos en Sen1Floods11. Mediante una
-ablación a igual cómputo comparamos tres formas de combinar los 252 chips etiquetados a mano con 1000
+ablación a igual cómputo y con 3 semillas por variante comparamos tres formas de combinar los 252 chips etiquetados a mano con 1000
 chips de etiqueta débil (umbral de Otsu), y tres funciones de pérdida (BCE, Dice y BCE+Dice). El mejor
-modelo alcanza un IoU de \RES{0.xx} en el test dorado, \RES{0.xx} en Bolivia (evento retenido) y apenas
-\RES{0.xx} en una región de prueba propia construida para Lima (marzo de 2017) a partir de una escena
+modelo alcanza un IoU de 0.655 en el test dorado y 0.701 en Bolivia (evento retenido), pero apenas
+0.002 en una región de prueba propia construida para Lima (marzo de 2017) a partir de una escena
 Sentinel-1 del 17 de marzo y la delineación Copernicus EMS EMSN038. Atribuimos esa brecha a tres
 causas: el tipo de inundación (lodo turbulento y zonas urbanas, que no se ven oscuros en el SAR), el
 desajuste de fecha y de criterio de la referencia óptica, y la geometría de radar en el relieve andino.
@@ -178,38 +178,49 @@ mejor experimento. En una GPU T4, cada entrenamiento de 40 épocas tarda unos 6 
 \begin{table}[t]
   \caption{Ablación. IoU, F1, precisión (P) y recall (R) de la clase agua. Test: chips dorados de los
   eventos vistos; Bolivia: evento retenido con etiquetas doradas; Lima: región propia (S1 17-mar-2017
-  + EMSN038). La selección se hace solo por IoU$_{val}$.}
+  + EMSN038). Media $\pm$ desviación estándar sobre 3 semillas; P y R son medias. La selección se hace solo por IoU$_{val}$.}
   \label{tab:ablation}
   \centering
   \scriptsize
   \setlength{\tabcolsep}{3.5pt}
-  \IfFileExists{../runs/ablation.tex}{\input{../runs/ablation.tex}}{\RES{[falta runs/ablation.tex]}}
+  \IfFileExists{ablation.tex}{\resizebox{\linewidth}{!}{\input{ablation.tex}}}{\RES{[falta ablation.tex]}}
 \end{table}
 
-\paragraph{Ablación (a).} \RES{[Completar: cuál estrategia gana y por cuánto. Si gold gana: con
-igual cómputo, el ruido de Otsu (sobre todo en sombras y suelos oscuros) cuesta más de lo que aporta la
-diversidad extra. Si mixed o pre$\to$ft gana: la diversidad de escenas compensa el ruido, y afinar con
-dorados corrige el sesgo del umbral.]}
+\paragraph{Ablación (a): las etiquetas débiles no ayudaron.} Con igual número de pasos, entrenar solo
+con los 252 chips dorados (IoU$_{val}$ $0.617\pm0.005$) supera a mezclar dorados y débiles
+($0.551\pm0.007$) y a preentrenar con débiles y afinar con dorados ($0.601\pm0.003$). La diferencia con
+la mezcla, unas 0.065, es más de diez veces la desviación entre semillas, y se repite en test (0.649 frente
+a 0.598) y en IoU por chip (0.401 frente a 0.325). Al mezclar, cuatro de cada cinco recortes que ve la red
+provienen del umbral de Otsu, y la red aprende sus errores (sombras, suelo oscuro, agua rugosa no
+detectada): su pérdida de entrenamiento es menor que la de \emph{gold}, pero rinde peor en validación.
+Afinar con dorados corrige buena parte de ese sesgo, pero no lo elimina. Con 1000 chips débiles, la calidad
+de la etiqueta pesó más que la cantidad.
 
-\paragraph{Ablación (b).} \RES{[Completar: BCE sola tiende a mayor precisión y menor recall en clases
-minoritarias; Dice sola optimiza directamente el solapamiento y sube el recall, pero puede ser
-inestable en chips casi sin agua; la combinación suele equilibrar ambas.]}
+\paragraph{Ablación (b): la pérdida casi no importa.} Con la estrategia \emph{gold}, BCE sola
+($0.619\pm0.020$) y BCE+Dice ($0.617\pm0.005$) empatan en validación: la diferencia es diez veces menor
+que la desviación de BCE. Dice sola queda algo por debajo ($0.604\pm0.003$). BCE es la más inestable
+entre semillas y la de menor IoU por chip (0.365 frente a 0.401), y BCE+Dice obtiene el mejor IoU en
+Bolivia ($0.697\pm0.024$). Este resultado justifica la segunda ronda: con una sola semilla (ronda 1),
+BCE+Dice parecía mejor que BCE por 0.017, una diferencia que desaparece al promediar. Siguiendo el
+protocolo, el modelo final es el entrenamiento de mayor IoU de validación del experimento con mejor
+media (BCE, semilla 1), aunque BCE+Dice sería una elección igual de defendible y más estable.
 
 \begin{figure}[t]
   \centering
-  \fig{curves.png}{0.62\linewidth}
-  \caption{IoU de validación por época. La línea punteada marca el paso de preentrenamiento a afinado.}
+  \fig{curves.png}{\linewidth}
+  \caption{IoU de validación por época: media de 3 semillas (línea) y rango mín--máx (banda). (a)
+ estrategia de datos; (b) función de pérdida. La línea punteada marca el paso de preentrenamiento a afinado.}
   \label{fig:curves}
 \end{figure}
 
-\paragraph{Evaluación en distribución.} El mejor modelo (\RES{nombre}) obtiene en test un IoU de
-\RES{0.xx}, F1 \RES{0.xx}, precisión \RES{0.xx} y recall \RES{0.xx}. La matriz de confusión
-(Fig.~\ref{fig:confusion}) muestra que el error dominante es la \textbf{omisión}: \RES{24\,\%} de los
-píxeles de agua se pierden, frente a \RES{2.4\,\%} de falsos positivos sobre tierra. Como la tierra es
+\paragraph{Evaluación en distribución.} El modelo final (BCE, semilla 1) obtiene en test un IoU de
+0.655, F1 0.791, precisión 0.796 y recall 0.786. La matriz de confusión
+(Fig.~\ref{fig:confusion}) muestra que el error dominante es la \textbf{omisión}: el 21.4\,\% de los
+píxeles de agua se pierden, frente a un 2.8\,\% de falsos positivos sobre tierra. Como la tierra es
 unas 7 veces más abundante, esos pocos falsos positivos aún pesan en la precisión. El IoU promediado por
-chip (\RES{0.xx}) es bastante menor que el global, porque los chips con muy poca agua, donde cualquier
+chip (0.382) es bastante menor que el global, porque los chips con muy poca agua, donde cualquier
 error domina el cociente, pesan igual que los chips mayormente inundados. Por evento
-(Fig.~\ref{fig:events}), el rendimiento va de \RES{0.87} en Sri Lanka a \RES{0.18} en Pakistán, donde
+(Fig.~\ref{fig:events}), el rendimiento va de 0.87 en Nigeria y 0.86 en Sri Lanka a 0.20 en Pakistán, donde
 las inundaciones son someras y con vegetación que asoma sobre el agua.
 
 \begin{figure}[t]
@@ -231,14 +242,15 @@ las inundaciones son someras y con vegetación que asoma sobre el agua.
 % ---------------------------------------------------------------------------------------------
 \section{Generalización geográfica: Bolivia y Lima}
 
-\paragraph{Bolivia: sin brecha apreciable.} En el evento retenido el mejor modelo obtiene un IoU de
-\RES{0.xx}, igual o superior al del test en distribución (\RES{0.xx}). Bolivia es una inundación fluvial
+\paragraph{Bolivia: sin brecha apreciable.} En el evento retenido el modelo final obtiene un IoU de
+0.701, por encima del test en distribución (0.655), y entre experimentos el IoU medio en Bolivia va de
+0.61 a 0.70 (Tabla~\ref{tab:ablation}), con desviaciones más grandes porque son solo 15 chips. Bolivia es una inundación fluvial
 en llanura, con agua abierta y calma, del mismo tipo que la mayoría de los eventos de entrenamiento, y
 sus etiquetas siguen el mismo protocolo. Por lo tanto, cambiar de región \emph{por sí solo} no degrada
 al modelo cuando el fenómeno físico es el mismo.
 
-\paragraph{Lima: colapso.} En la región peruana todos los modelos caen a un IoU de \RES{0.00x--0.0xx},
-con precisión y recall por debajo de \RES{5\,\%}. Para separar el fallo del modelo de un problema de los
+\paragraph{Lima: colapso.} En la región peruana todos los modelos caen a un IoU de 0.002--0.013, con
+precisión y recall por debajo del 5\,\% (el modelo final: 0.002, con recall de 0.2\,\%). Para separar el fallo del modelo de un problema de los
 datos, comparamos la distribución de $\sigma^0$ de los píxeles que la referencia marca como agua frente
 a los de tierra (Fig.~\ref{fig:backscatter}). En Sen1Floods11 y en Bolivia el agua es unos
 \textbf{8\,dB más oscura} que la tierra en VV (medianas de $-17.6$ frente a $-9.5$\,dB en test). En Lima
@@ -288,11 +300,12 @@ tres tipos de error:
 \begin{enumerate}
   \item \textbf{Vegetación inundada y agua somera (omisión).} En Pakistán e India, campos anegados con
   vegetación que asoma producen dispersión de volumen y doble rebote tallo--agua, y el píxel no se ve
-  oscuro. El modelo omite grandes áreas (IoU \RES{0.17} y \RES{0.28} en los peores chips).
+  oscuro. El modelo omite grandes áreas (IoU de 0.23 y 0.49 en los chips Pakistan\_849790 e India\_747992, con
+  132\,mil y 58\,mil píxeles de agua omitidos).
   \item \textbf{Suelo húmedo, arena y superficies lisas (comisión).} Parcelas recién aradas o
   inundadas antes del evento, bancos de arena y suelos saturados son especularmente lisos y se ven tan
-  oscuros como el agua. El modelo los marca como agua, como en el chip \RES{Pakistan\_70625}, donde la
-  etiqueta solo contiene un canal estrecho.
+  oscuros como el agua. El modelo los marca como agua, como en el chip Pakistan\_70625 (IoU 0.06,
+  48\,mil falsos positivos), donde la etiqueta solo contiene un canal estrecho.
   \item \textbf{Zonas urbanas: doble rebote.} En el chip urbano de España y en Huachipa (Lima), los
   edificios generan retornos muy brillantes que interrumpen la máscara de agua y fragmentan la
   predicción en el tejido urbano.
@@ -319,9 +332,9 @@ tres tipos de error:
 \section{Discusión y limitaciones}
 
 \begin{itemize}
-  \item \textbf{Presupuesto de cómputo.} Cada variante se entrenó una sola vez (semilla 0) y por 40
-  épocas cortas. Diferencias de unas pocas centésimas de IoU entre variantes pueden estar dentro de la
-  varianza entre semillas.
+  \item \textbf{Presupuesto de cómputo.} Tres semillas por variante y 40 épocas cortas. Tres
+  repeticiones bastan para separar la diferencia de la ablación (a), pero no para ordenar con confianza
+  las pérdidas; el IoU de validación además oscila mucho entre épocas consecutivas.
   \item \textbf{Subconjunto de etiquetas débiles.} Usamos 1000 de los 4\,384 chips débiles de S1 y no
   probamos los derivados de Sentinel-2. Con más datos débiles, o con ponderación por confianza, la
   conclusión de la ablación (a) podría cambiar.
@@ -337,10 +350,11 @@ tres tipos de error:
 
 \section{Conclusiones}
 
-Una U-Net de 7.8\,M de parámetros entrenada solo con SAR alcanza un IoU de \RES{0.xx} en distribución.
-En la ablación, \RES{[estrategia]} fue la mejor forma de usar las etiquetas débiles, y \RES{[pérdida]}
-la mejor pérdida. El modelo generaliza razonablemente a otra inundación fluvial y rural (Bolivia,
-\RES{0.xx}), pero no al escenario peruano de 2017, cuyas firmas SAR (agua turbulenta, zonas urbanas,
+Una U-Net de 7.8\,M de parámetros entrenada solo con SAR alcanza un IoU de 0.655 en distribución. En la
+ablación, con 3 semillas, entrenar solo con etiquetas doradas fue claramente mejor que sumar 1000
+etiquetas débiles (unas 0.065 de IoU a favor en validación); la elección de la pérdida, en cambio, no
+produjo diferencias distinguibles del ruido entre semillas, lo que solo se pudo ver gracias a la segunda
+ronda de entrenamientos. El modelo generaliza a otra inundación fluvial y rural (Bolivia, 0.701), pero no al escenario peruano de 2017, cuyas firmas SAR (agua turbulenta, zonas urbanas,
 relieve andino) no están en el entrenamiento. Para uso operativo en el Perú, la conclusión práctica es
 que se necesitan ejemplos locales, ya sea afinando con unos pocos chips etiquetados de eventos peruanos,
 y fuentes auxiliares (DEM, óptico) antes de confiar en un modelo entrenado en otras regiones.

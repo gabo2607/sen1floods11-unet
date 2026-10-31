@@ -1,0 +1,13 @@
+\begin{tabular}{lcccc|c|cc}
+\toprule
+ & & \multicolumn{3}{c|}{Test (en distribución)} & Bolivia & \multicolumn{2}{c}{Lima} \\
+Experimento & IoU$_{val}$ & IoU & IoU$_{chip}$ & P / R & IoU & IoU & P / R \\
+\midrule
+Solo dorados · BCE+Dice & 0.617\,$\pm$\,0.005 & 0.649\,$\pm$\,0.002 & 0.401\,$\pm$\,0.003 & 0.77 / 0.80 & 0.697\,$\pm$\,0.024 & 0.013\,$\pm$\,0.000 & 0.04 / 0.02 \\
+Dorados + débiles · BCE+Dice & 0.551\,$\pm$\,0.007 & 0.598\,$\pm$\,0.006 & 0.325\,$\pm$\,0.016 & 0.79 / 0.71 & 0.653\,$\pm$\,0.051 & 0.002\,$\pm$\,0.001 & 0.01 / 0.00 \\
+Pre. débiles $\to$ afin. dorados · BCE+Dice & 0.601\,$\pm$\,0.003 & 0.642\,$\pm$\,0.005 & 0.374\,$\pm$\,0.002 & 0.81 / 0.76 & 0.608\,$\pm$\,0.034 & 0.005\,$\pm$\,0.002 & 0.03 / 0.01 \\
+\midrule
+Solo dorados · BCE & 0.619\,$\pm$\,0.020 & 0.652\,$\pm$\,0.005 & 0.365\,$\pm$\,0.020 & 0.82 / 0.77 & 0.637\,$\pm$\,0.063 & 0.005\,$\pm$\,0.006 & 0.03 / 0.01 \\
+Solo dorados · Dice & 0.604\,$\pm$\,0.003 & 0.636\,$\pm$\,0.003 & 0.367\,$\pm$\,0.014 & 0.78 / 0.77 & 0.654\,$\pm$\,0.025 & 0.004\,$\pm$\,0.006 & 0.02 / 0.01 \\
+\bottomrule
+\end{tabular}

@@ -99,7 +99,19 @@ def main():
         else:
             print(f"  (falta {src.name}, se mantiene la anterior si existe)")
 
-    render_error_chips(runs, best_run, Path(a.root))
+    if (runs / best_run / "best.pt").exists():
+        render_error_chips(runs, best_run, Path(a.root))
+    else:  # sin pesos locales: usar los paneles que dibujó src/figures.py con el mismo modelo
+        from PIL import Image
+        for out, key in ERROR_CHIPS.items():
+            cands = sorted((runs / "figures" / "chips" / "test").glob(f"*_{key}.png"),
+                           key=lambda f: f.stat().st_mtime)
+            if not cands:
+                print(f"  (no hay panel para {key})")
+                continue
+            im = Image.open(cands[-1])
+            im.crop((0, 0, im.width, int(im.height * 0.86))).save(HERE / "img" / f"{out}.png")
+        print("Paneles de error tomados de runs/figures/chips/test")
 
     if not a.no_pdf:
         chrome = next((c for c in CHROME if Path(c).exists()), None)
