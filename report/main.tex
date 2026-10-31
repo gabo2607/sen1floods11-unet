@@ -18,6 +18,8 @@
 \usepackage{xcolor}
 \usepackage{graphicx}
 \usepackage{subcaption}
+\usepackage{float}  % [H]: cada figura justo donde se la menciona
+\raggedbottom  % no estirar los espacios verticales para llenar páginas
 
 % Marca los valores que dependen de los resultados finales de Colab
 \newcommand{\RES}[1]{\textcolor{red}{#1}}
@@ -47,7 +49,8 @@ modelo alcanza un IoU de 0.655 en el test dorado y 0.701 en Bolivia (evento rete
 0.002 en una región de prueba propia construida para Lima (marzo de 2017) a partir de una escena
 Sentinel-1 del 17 de marzo y la delineación Copernicus EMS EMSN038. Atribuimos esa brecha a tres
 causas: el tipo de inundación (lodo turbulento y zonas urbanas, que no se ven oscuros en el SAR), el
-desajuste de fecha y de criterio de la referencia óptica, y la geometría de radar en el relieve andino.
+desajuste de fecha y de criterio de la referencia óptica, y la escala: franjas de agua de pocas decenas
+de metros, al límite de la resolución de 10\,m.
 Como bono, añadir 6 bandas de Sentinel-2 en los chips sin nubes eleva el IoU de test de 0.66 a 0.87.
 \end{abstract}
 
@@ -150,7 +153,8 @@ validación se hace sobre chips completos de $512\times512$, y el punto de contr
 \emph{exclusivamente} por IoU de validación; test, Bolivia y Lima nunca intervienen en una decisión.
 
 \paragraph{Métricas.} Para la clase agua: IoU global (agregando TP/FP/FN de todos los píxeles), IoU
-promediado por chip (métrica de los autores de Sen1Floods11), F1, precisión, recall, omisión
+promediado por chip (métrica de los autores de Sen1Floods11; se omiten los chips sin agua ni en la etiqueta
+ni en la predicción, donde el IoU no está definido), F1, precisión, recall, omisión
 ($1-$recall), comisión ($1-$precisión) y matriz de confusión, con umbral 0.5.
 
 % ---------------------------------------------------------------------------------------------
@@ -176,10 +180,14 @@ mejor experimento. En una GPU T4, cada entrenamiento de 40 épocas tarda unos 6 
 % ---------------------------------------------------------------------------------------------
 \section{Resultados}
 
-\begin{table}[t]
-  \caption{Ablación. IoU, F1, precisión (P) y recall (R) de la clase agua. Test: chips dorados de los
-  eventos vistos; Bolivia: evento retenido con etiquetas doradas; Lima: región propia (S1 17-mar-2017
-  + EMSN038). Media $\pm$ desviación estándar sobre 3 semillas; P y R son medias. La selección se hace solo por IoU$_{val}$.}
+La Tabla~\ref{tab:ablation} resume los cinco experimentos, con la media y la desviación estándar de las
+3 semillas, y la Fig.~\ref{fig:curves} muestra cómo aprende cada uno.
+
+\begin{table}[H]
+  \caption{Ablación. IoU, precisión (P) y recall (R) de la clase agua. Test: chips dorados de los eventos
+  vistos; Bolivia: evento retenido con etiquetas doradas; Lima: región propia (S1 17-mar-2017 + EMSN038).
+  Media $\pm$ desviación estándar sobre 3 semillas; P y R son medias. La selección se hace solo por
+  IoU$_{val}$.}
   \label{tab:ablation}
   \centering
   \scriptsize
@@ -191,7 +199,8 @@ mejor experimento. En una GPU T4, cada entrenamiento de 40 épocas tarda unos 6 
 con los 252 chips dorados (IoU$_{val}$ $0.617\pm0.005$) supera a mezclar dorados y débiles
 ($0.551\pm0.007$) y a preentrenar con débiles y afinar con dorados ($0.601\pm0.003$). La diferencia con
 la mezcla, unas 0.065, es más de diez veces la desviación entre semillas, y se repite en test (0.649 frente
-a 0.598) y en IoU por chip (0.401 frente a 0.325). Al mezclar, cuatro de cada cinco recortes que ve la red
+a 0.598) y en IoU por chip (0.401 frente a 0.325). En la Fig.~\ref{fig:curves}a, la curva de la mezcla
+queda por debajo durante todo el entrenamiento. Al mezclar, cuatro de cada cinco recortes que ve la red
 provienen del umbral de Otsu, y la red aprende sus errores (sombras, suelo oscuro, agua rugosa no
 detectada): su pérdida de entrenamiento es menor que la de \emph{gold}, pero rinde peor en validación.
 Afinar con dorados corrige buena parte de ese sesgo, pero no lo elimina. Con 1000 chips débiles, la calidad
@@ -200,66 +209,84 @@ de la etiqueta pesó más que la cantidad.
 \paragraph{Ablación (b): la pérdida casi no importa.} Con la estrategia \emph{gold}, BCE sola
 ($0.619\pm0.020$) y BCE+Dice ($0.617\pm0.005$) empatan en validación: la diferencia es diez veces menor
 que la desviación de BCE. Dice sola queda algo por debajo ($0.604\pm0.003$). BCE es la más inestable
-entre semillas y la de menor IoU por chip (0.365 frente a 0.401), y BCE+Dice obtiene el mejor IoU en
-Bolivia ($0.697\pm0.024$). Este resultado justifica la segunda ronda: con una sola semilla (ronda 1),
-BCE+Dice parecía mejor que BCE por 0.017, una diferencia que desaparece al promediar. Siguiendo el
-protocolo, el modelo final es el entrenamiento de mayor IoU de validación del experimento con mejor
-media (BCE, semilla 1), aunque BCE+Dice sería una elección igual de defendible y más estable.
+entre semillas (la banda más ancha en la Fig.~\ref{fig:curves}b) y la de menor IoU por chip (0.365 frente
+a 0.401), y BCE+Dice obtiene el mejor IoU en Bolivia ($0.697\pm0.024$). Este resultado justifica la
+segunda ronda: con una sola semilla (ronda 1), BCE+Dice parecía mejor que BCE por 0.017, una diferencia
+que desaparece al promediar. Siguiendo el protocolo, el modelo final es el entrenamiento de mayor IoU de
+validación del experimento con mejor media (BCE, semilla 1), aunque BCE+Dice sería una elección igual de
+defendible y más estable.
 
-\begin{figure}[t]
+\begin{figure}[H]
   \centering
   \fig{curves.png}{\linewidth}
   \caption{IoU de validación por época: media de 3 semillas (línea) y rango mín--máx (banda). (a)
- estrategia de datos; (b) función de pérdida. La línea punteada marca el paso de preentrenamiento a afinado.}
+  Estrategia de datos; (b) función de pérdida. La línea punteada marca el paso de preentrenamiento a
+  afinado.}
   \label{fig:curves}
 \end{figure}
 
 \paragraph{Evaluación en distribución.} El modelo final (BCE, semilla 1) obtiene en test un IoU de
-0.655, F1 0.791, precisión 0.796 y recall 0.786. La matriz de confusión
-(Fig.~\ref{fig:confusion}) muestra que el error dominante es la \textbf{omisión}: el 21.4\,\% de los
-píxeles de agua se pierden, frente a un 2.8\,\% de falsos positivos sobre tierra. Como la tierra es
-unas 7 veces más abundante, esos pocos falsos positivos aún pesan en la precisión. El IoU promediado por
-chip (0.382) es bastante menor que el global, porque los chips con muy poca agua, donde cualquier
-error domina el cociente, pesan igual que los chips mayormente inundados. Por evento
-(Fig.~\ref{fig:events}), el rendimiento va de 0.87 en Nigeria y 0.86 en Sri Lanka a 0.20 en Pakistán, donde
-las inundaciones son someras y con vegetación que asoma sobre el agua.
+0.655, F1 0.791, precisión 0.796 y recall 0.786. La matriz de confusión (Fig.~\ref{fig:confusion}a)
+muestra que el error dominante es la \textbf{omisión}: el 21.4\,\% de los píxeles de agua se pierden,
+frente a un 2.8\,\% de falsos positivos sobre tierra. Como la tierra es unas 7 veces más abundante, esos
+pocos falsos positivos aún pesan en la precisión. Las matrices de Bolivia y Lima (Fig.~\ref{fig:confusion}b
+y c) se comentan en la Sección~\ref{sec:general}.
 
-\begin{figure}[t]
+\begin{figure}[H]
   \centering
-  \begin{subfigure}{0.32\linewidth}\fig{confusion_test.png}{\linewidth}\caption{Test}\end{subfigure}
-  \begin{subfigure}{0.32\linewidth}\fig{confusion_bolivia.png}{\linewidth}\caption{Bolivia}\end{subfigure}
-  \begin{subfigure}{0.32\linewidth}\fig{confusion_lima.png}{\linewidth}\caption{Lima}\end{subfigure}
-  \caption{Matrices de confusión del mejor modelo, normalizadas por fila (etiqueta).}
+  \begin{subfigure}{0.31\linewidth}\fig{confusion_test.png}{\linewidth}\caption{Test}\end{subfigure}\hfill
+  \begin{subfigure}{0.31\linewidth}\fig{confusion_bolivia.png}{\linewidth}\caption{Bolivia}\end{subfigure}\hfill
+  \begin{subfigure}{0.31\linewidth}\fig{confusion_lima.png}{\linewidth}\caption{Lima}\end{subfigure}
+  \caption{Matrices de confusión del modelo final, normalizadas por fila (etiqueta real).}
   \label{fig:confusion}
 \end{figure}
 
-\begin{figure}[t]
+El IoU promediado por chip (0.382) es bastante menor que el global, porque los chips con muy poca agua,
+donde cualquier error domina el cociente, pesan igual que los chips mayormente inundados. Por evento
+(Fig.~\ref{fig:events}), el rendimiento va de 0.87 en Nigeria y 0.86 en Sri Lanka a 0.20 en Pakistán, donde
+las inundaciones son someras y con vegetación que asoma sobre el agua.
+
+\begin{figure}[H]
   \centering
-  \fig{events.png}{0.62\linewidth}
-  \caption{IoU global por evento (test) y en las dos regiones nunca vistas.}
+  \fig{events.png}{0.6\linewidth}
+  \caption{IoU global por evento del modelo final: eventos del test (azul) y las dos regiones nunca vistas
+  (naranja).}
   \label{fig:events}
 \end{figure}
 
 % ---------------------------------------------------------------------------------------------
 \section{Generalización geográfica: Bolivia y Lima}
+\label{sec:general}
 
 \paragraph{Bolivia: sin brecha apreciable.} En el evento retenido el modelo final obtiene un IoU de
 0.701, por encima del test en distribución (0.655), y entre experimentos el IoU medio en Bolivia va de
-0.61 a 0.70 (Tabla~\ref{tab:ablation}), con desviaciones más grandes porque son solo 15 chips. Bolivia es una inundación fluvial
-en llanura, con agua abierta y calma, del mismo tipo que la mayoría de los eventos de entrenamiento, y
-sus etiquetas siguen el mismo protocolo. Por lo tanto, cambiar de región \emph{por sí solo} no degrada
-al modelo cuando el fenómeno físico es el mismo.
+0.61 a 0.70 (Tabla~\ref{tab:ablation}), con desviaciones más grandes porque son solo 15 chips. Su matriz
+de confusión (Fig.~\ref{fig:confusion}b) es muy parecida a la del test. Bolivia es una inundación fluvial
+en llanura, con agua abierta y calma, del mismo tipo que la mayoría de los eventos de entrenamiento, y sus
+etiquetas siguen el mismo protocolo. Por lo tanto, cambiar de región \emph{por sí solo} no degrada al
+modelo cuando el fenómeno físico es el mismo.
 
-\paragraph{Lima: colapso.} En la región peruana todos los modelos caen a un IoU de 0.002--0.013, con
-precisión y recall por debajo del 5\,\% (el modelo final: 0.002, con recall de 0.2\,\%). Para separar el fallo del modelo de un problema de los
-datos, comparamos la distribución de $\sigma^0$ de los píxeles que la referencia marca como agua frente
-a los de tierra (Fig.~\ref{fig:backscatter}). En Sen1Floods11 y en Bolivia el agua es unos
-\textbf{8\,dB más oscura} que la tierra en VV (medianas de $-17.6$ frente a $-9.5$\,dB en test). En Lima
-las dos distribuciones \textbf{se superponen casi por completo} ($-8.7$ frente a $-9.0$\,dB en VV y
-$-16.4$ frente a $-16.1$\,dB en VH). Sobre la escena del 17 de marzo, la ``inundación'' de EMSN038 no
-tiene la firma del agua abierta, así que ningún clasificador que use solo SAR podría separarla de la
-tierra. La brecha no se explica, entonces, por falta de capacidad del modelo, sino por las siguientes
-causas:
+\paragraph{Lima: colapso.} En la región peruana todos los modelos caen a un IoU de 0.002--0.013. La matriz
+del modelo final (Fig.~\ref{fig:confusion}c) muestra que casi no inventa agua (0.2\,\% de la tierra), pero
+omite el 99.8\,\% del agua de referencia: prácticamente no marca nada. Para separar el fallo del modelo de
+un problema de los datos, comparamos la distribución de $\sigma^0$ de los píxeles que la referencia marca
+como agua frente a los de tierra (Fig.~\ref{fig:backscatter}).
+
+\begin{figure}[H]
+  \centering
+  \fig{backscatter.png}{0.88\linewidth}
+  \caption{Distribución de $\sigma^0$ (dB) de los píxeles etiquetados como agua (azul) y como tierra
+  (naranja). En Sen1Floods11 y en Bolivia el agua es claramente más oscura; en Lima, la referencia
+  EMSN038 y la tierra son indistinguibles en ambas polarizaciones.}
+  \label{fig:backscatter}
+\end{figure}
+
+En Sen1Floods11 y en Bolivia el agua es unos \textbf{8\,dB más oscura} que la tierra en VV (medianas de
+$-17.6$ frente a $-9.5$\,dB en test). En Lima las dos distribuciones \textbf{se superponen casi por
+completo} ($-8.7$ frente a $-9.0$\,dB en VV y $-16.4$ frente a $-16.1$\,dB en VH). Sobre la escena del 17 de
+marzo, la ``inundación'' de EMSN038 no tiene la firma del agua abierta, así que ningún clasificador que use
+solo SAR podría separarla de la tierra. La brecha no se explica, entonces, por falta de capacidad del
+modelo, sino por las siguientes causas:
 
 \begin{enumerate}
   \item \textbf{Tipo de inundación y cobertura urbana.} En Lima no hubo una lámina de agua calma, sino
@@ -274,58 +301,54 @@ causas:
   Flood Extent} delinea la extensión \emph{máxima} afectada, incluidas zonas con lodo y huellas de la
   crecida, no solo el agua visible en un instante. Gran parte de la ``omisión'' es, en realidad,
   desacuerdo de criterio entre la etiqueta y lo que el sensor puede ver.
-  \item \textbf{Geometría y normalización del radar (efecto menor).} El relieve de las quebradas produce
-  sombra de radar e inversión por relieve (\emph{layover}), fuente de falsos positivos. En cambio, la
-  conversión aproximada $\gamma^0\to\sigma^0$~\cite{small2011flattening} no parece la causa principal:
-  la tierra de Lima ($-9.0$\,dB en VV) tiene niveles muy parecidos a los de Sen1Floods11 ($-9.5$\,dB).
+  \item \textbf{Normalización del radar (efecto menor).} La conversión aproximada
+  $\gamma^0\to\sigma^0$~\cite{small2011flattening} no parece la causa principal: la tierra de Lima
+  ($-9.0$\,dB en VV) tiene niveles muy parecidos a los de Sen1Floods11 ($-9.5$\,dB).
   \item \textbf{Escala.} El agua de referencia ocupa en promedio un 3\,\% de cada chip y se reparte en
   franjas de pocas decenas de metros, al límite de la resolución de 10\,m, donde los bordes pesan mucho
   en el IoU.
 \end{enumerate}
 
-\begin{figure}[t]
-  \centering
-  \fig{backscatter.png}{0.95\linewidth}
-  \caption{Distribución de $\sigma^0$ (dB) de los píxeles etiquetados como agua (azul) y como tierra
-  (naranja). En Sen1Floods11 y en Bolivia el agua es claramente más oscura; en Lima, la referencia
-  EMSN038 y la tierra son indistinguibles en ambas polarizaciones.}
-  \label{fig:backscatter}
-\end{figure}
-
 % ---------------------------------------------------------------------------------------------
 \section{Análisis cualitativo de errores característicos del SAR}
+\label{sec:errores}
 
-La Fig.~\ref{fig:errors} muestra los chips con más píxeles mal clasificados. Identificamos al menos
-tres tipos de error:
+La Fig.~\ref{fig:errors} muestra tres chips de test, elegidos entre los de más píxeles mal clasificados,
+uno por cada tipo de error característico del radar:
 
-\begin{enumerate}
-  \item \textbf{Vegetación inundada y agua somera (omisión).} En Pakistán e India, campos anegados con
-  vegetación que asoma producen dispersión de volumen y doble rebote tallo--agua, y el píxel no se ve
-  oscuro. El modelo omite grandes áreas (IoU de 0.23 y 0.49 en los chips Pakistan\_849790 e India\_747992, con
-  132\,mil y 58\,mil píxeles de agua omitidos).
-  \item \textbf{Suelo húmedo, arena y superficies lisas (comisión).} Parcelas recién aradas o
-  inundadas antes del evento, bancos de arena y suelos saturados son especularmente lisos y se ven tan
-  oscuros como el agua. El modelo los marca como agua, como en el chip Pakistan\_70625 (IoU 0.06,
-  48\,mil falsos positivos), donde la etiqueta solo contiene un canal estrecho.
-  \item \textbf{Zonas urbanas: doble rebote.} En el chip urbano de España y en Huachipa (Lima), los
-  edificios generan retornos muy brillantes que interrumpen la máscara de agua y fragmentan la
-  predicción en el tejido urbano.
-  \item \textbf{Sombra de radar en relieve (comisión, Lima).} En las laderas opuestas al sensor no
-  llega señal, y quedan franjas oscuras que el modelo confunde con agua (Fig.~\ref{fig:errors-lima}).
-\end{enumerate}
-
-\begin{figure}[t]
+\begin{figure}[H]
   \centering
-  \fig{errors_test.png}{0.92\linewidth}
-  \caption{Los chips de test con más errores. Columnas: VV, VH (dB), etiqueta dorada, predicción y
-  mapa de errores (gris: acierto; naranja: falso positivo; azul: falso negativo).}
+  \fig{errors_test_sel.png}{0.82\linewidth}
+  \caption{Tres errores característicos del SAR en el test (modelo final). Columnas: VV y VH (dB),
+  etiqueta dorada, predicción y mapa de errores (gris: acierto; naranja: falso positivo; azul: falso
+  negativo).}
   \label{fig:errors}
 \end{figure}
 
-\begin{figure}[t]
+\begin{enumerate}
+  \item \textbf{Vegetación inundada y agua somera: omisión} (Fig.~\ref{fig:errors}a). En campos anegados
+  con vegetación que asoma, la dispersión de volumen y el doble rebote tallo--agua hacen que el píxel no
+  se vea oscuro. En el chip Pakistan\_849790 el modelo omite 132\,mil píxeles de agua (IoU 0.23).
+  \item \textbf{Suelo húmedo y superficies lisas: comisión} (Fig.~\ref{fig:errors}b). Parcelas recién
+  aradas o anegadas antes del evento, bancos de arena y suelos saturados son especularmente lisos y se
+  ven tan oscuros como el agua. En el chip Pakistan\_70625 la etiqueta solo contiene un canal estrecho, y
+  el modelo marca 48\,mil falsos positivos (IoU 0.06).
+  \item \textbf{Zonas urbanas: doble rebote} (Fig.~\ref{fig:errors}c). En el chip urbano de España, los
+  edificios generan retornos muy brillantes (los puntos blancos de VV) que interrumpen la máscara de agua
+  y fragmentan la predicción dentro del tejido urbano, con errores en ambos sentidos.
+\end{enumerate}
+
+En Lima (Fig.~\ref{fig:errors-lima}) estos mecanismos se combinan y el resultado es una omisión casi
+total: el cauce del Rímac y la llanura inundada de Huachipa no se ven oscuros en VV ni en VH, y el modelo
+apenas marca algún píxel. Llama la atención que el modelo \emph{no} confunde con agua las sombras de radar
+de los cerros (prácticamente no hay falsos positivos), lo que refuerza que el problema es la falta de
+firma de agua y no un exceso de sensibilidad.
+
+\begin{figure}[H]
   \centering
-  \fig{errors_lima.png}{0.92\linewidth}
-  \caption{Chips de Lima con más errores, con la referencia EMSN038 como etiqueta.}
+  \fig{errors_lima_sel.png}{0.82\linewidth}
+  \caption{Dos chips de Lima con el modelo final. La ``etiqueta'' es la referencia EMSN038 (no una
+  etiqueta dorada de Sen1Floods11). Casi todo el error es omisión (azul).}
   \label{fig:errors-lima}
 \end{figure}
 
@@ -340,7 +363,7 @@ los chips con menos del 10\,\% de nubes: 142 de entrenamiento, 50 de validación
 Bolivia. Para que la comparación sea justa, entrenamos \emph{sobre esos mismos chips} una U-Net solo SAR
 y otra SAR + óptico, con BCE+Dice, el mismo número de pasos y 3 semillas (Tabla~\ref{tab:bono}).
 
-\begin{table}[h]
+\begin{table}[H]
   \caption{Bono: chips sin nubes. Media $\pm$ desviación estándar sobre 3 semillas.}
   \label{tab:bono}
   \centering
@@ -353,12 +376,13 @@ encima de 0.92. También mejora el IoU por chip (0.478 a 0.702) y el de Bolivia 
 variación entre semillas casi desaparece. La explicación es física: en el infrarrojo cercano y de onda
 corta (B8, B11, B12) el agua absorbe casi toda la radiación y se separa con nitidez de la vegetación
 inundada, del suelo húmedo y de las zonas urbanas, que son justamente los errores típicos del radar
-(Sección~8). Hay tres advertencias. (i) La ganancia solo existe sin nubes: el filtro descartó el 44\,\% de
-los chips de entrenamiento, y en las horas críticas de una tormenta rara vez hay imagen óptica útil, que es
-la razón de usar SAR. (ii) El subconjunto despejado favorece escenas tomadas cuando el cielo ya se había
-abierto. (iii) Las etiquetas doradas de Sen1Floods11 se trazaron con ayuda de la imagen óptica, así que
-parte de la ganancia puede reflejar que el modelo ve la misma información que el anotador. La conclusión
-práctica es usar el óptico cuando esté disponible y el radar como respaldo siempre disponible.
+(Sección~\ref{sec:errores}). Hay tres advertencias. (i) La ganancia solo existe sin nubes: el filtro
+descartó el 44\,\% de los chips de entrenamiento, y en las horas críticas de una tormenta rara vez hay
+imagen óptica útil, que es la razón de usar SAR. (ii) El subconjunto despejado favorece escenas tomadas
+cuando el cielo ya se había abierto. (iii) Las etiquetas doradas de Sen1Floods11 se trazaron con ayuda de
+la imagen óptica, así que parte de la ganancia puede reflejar que el modelo ve la misma información que el
+anotador. La conclusión práctica es usar el óptico cuando esté disponible y el radar como respaldo siempre
+disponible.
 
 \section{Discusión y limitaciones}
 
@@ -387,9 +411,9 @@ ablación, con 3 semillas, entrenar solo con etiquetas doradas fue claramente me
 etiquetas débiles (unas 0.065 de IoU a favor en validación); la elección de la pérdida, en cambio, no
 produjo diferencias distinguibles del ruido entre semillas, lo que solo se pudo ver gracias a la segunda
 ronda de entrenamientos. Cuando no hay nubes, sumar Sentinel-2 sube el IoU de 0.66 a 0.87. El modelo
-solo-SAR generaliza a otra inundación fluvial y rural (Bolivia, 0.701), pero no al escenario peruano de 2017, cuyas firmas SAR (agua turbulenta, zonas urbanas,
-relieve andino) no están en el entrenamiento. Para uso operativo en el Perú, la conclusión práctica es
-que se necesitan ejemplos locales, ya sea afinando con unos pocos chips etiquetados de eventos peruanos,
+solo-SAR generaliza a otra inundación fluvial y rural (Bolivia, 0.701), pero no al escenario peruano de 2017: allí el agua de referencia no tiene la firma oscura del agua
+abierta (agua turbulenta con sedimento, zonas urbanas) y la etiqueta es de otra fecha y otro criterio. Para uso operativo en el Perú, la conclusión práctica es
+que se necesitan ejemplos locales, afinando con unos pocos chips etiquetados de eventos peruanos,
 y fuentes auxiliares (DEM, óptico) antes de confiar en un modelo entrenado en otras regiones.
 
 \paragraph{Reproducibilidad.} Todo el pipeline (descarga, ablación, evaluación y figuras) corre con
