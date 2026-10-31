@@ -42,6 +42,15 @@ En Colab (GPU T4) cada entrenamiento tarda unos 6 minutos (≈1.5 h en total); u
 guarda los resultados en Google Drive y se puede reanudar. Prueba de humo en un par de minutos:
 `python run_all.py --quick`.
 
+## Bono: fusión SAR + Sentinel-2
+
+Al final, `run_all.py` descarga las 13 bandas de Sentinel-2 de los chips dorados y conserva los chips
+**sin nubes** (`src/data/s2_clear.py`: píxel nuboso si B2 > 0.20 o B10 > 0.01; chip despejado si tiene
+menos de 10 % de nubes). Quedan 142 de entrenamiento, 50 de validación, 56 de test y 6 de Bolivia.
+Sobre **esos mismos chips** entrena, con 3 semillas, una U-Net **solo SAR** (VV, VH) y otra con **SAR +
+óptico** (VV, VH + B2, B3, B4, B8, B11, B12, 8 canales), y escribe la comparación en `runs/bono.md` y
+`runs/bono.tex`. Lima no entra en el bono porque no se preparó Sentinel-2 para esa escena.
+
 ## Estructura
 
 ```

@@ -88,12 +88,14 @@ def main():
     parser.add_argument("--root", default="data/sen1floods11")
     parser.add_argument("--weak-limit", type=int, default=0,
                         help="chips débiles a descargar (0 = ninguno, -1 = todos los permitidos)")
+    parser.add_argument("--s2", action="store_true", help="descarga también Sentinel-2 de los chips dorados (bono)")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--workers", type=int, default=16)
     args = parser.parse_args()
     root = Path(args.root)
 
-    for prefix in [SPLITS, HAND + "S1Hand/", HAND + "LabelHand/"]:
+    prefixes = [SPLITS, HAND + "S1Hand/", HAND + "LabelHand/"] + ([HAND + "S2Hand/"] if args.s2 else [])
+    for prefix in prefixes:
         names = [n for n in list_objects(prefix) if not n.endswith("/")]
         print(f"{prefix}: {len(names)} archivos")
         fetch_all(names, root, args.workers)

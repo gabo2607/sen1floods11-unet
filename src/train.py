@@ -22,7 +22,7 @@ import numpy as np
 import torch
 from torch.utils.data import ConcatDataset, DataLoader, RandomSampler
 
-from .data.dataset import FloodDataset
+from .data.dataset import S2_BANDS, FloodDataset
 from .losses import SegLoss
 from .metrics import WaterMetrics
 from .models.unet import UNet
@@ -33,17 +33,24 @@ SPLITS = "v1.1/splits/flood_handlabeled"
 WEAK_CSV = "v1.1/splits/weak_selected.csv"
 
 
-def hand_dataset(root, split, train=False, crop=256):
+def hand_dataset(root, split, train=False, crop=256, s2=False, subset=""):
+    """subset='s2clear' usa solo los chips sin nubes en Sentinel-2 (bono); s2=True añade 6 bandas ópticas."""
     if split == "lima":  # región de prueba propia (src/data/lima.py)
         lima = root / "lima"
         return FloodDataset(lima / "flood_lima_data.csv", lima / "S1Hand", lima / "LabelHand")
+    name = f"flood_{split}_{subset}_data.csv" if subset else f"flood_{split}_data.csv"
     return FloodDataset(
-        root / SPLITS / f"flood_{split}_data.csv",
+        root / SPLITS / name,
         root / HAND / "S1Hand",
         root / HAND / "LabelHand",
         train=train,
         crop=crop,
+        s2_dir=root / HAND / "S2Hand" if s2 else None,
     )
+
+
+def in_channels(args):
+    return 2 + (len(S2_BANDS) if args.get("s2") else 0)
 
 
 def weak_dataset(root, n, crop=256):
@@ -91,6 +98,8 @@ def main():
     p.add_argument("--no-skip", action="store_true")
     p.add_argument("--workers", type=int, default=2)
     p.add_argument("--seed", type=int, default=0)
+    p.add_argument("--s2", action="store_true", help="bono: añade 6 bandas de Sentinel-2 como canales")
+    p.add_argument("--subset", default="", help="'s2clear' = solo chips sin nubes (bono)")
     args = p.parse_args()
 
     torch.manual_seed(args.seed)
@@ -101,7 +110,7 @@ def main():
     out = Path(args.runs_dir) / args.name
     out.mkdir(parents=True, exist_ok=True)
 
-    gold = hand_dataset(root, "train", train=True, crop=args.crop)
+    gold = hand_dataset(root, "train", train=True, crop=args.crop, s2=args.s2, subset=args.subset)
     if args.data == "gold":
         train_ds = gold
     elif args.data == "weak":
@@ -114,11 +123,12 @@ def main():
     train_loader = DataLoader(train_ds, batch_size=args.batch_size, sampler=sampler,
                               num_workers=args.workers, drop_last=True, worker_init_fn=seed_worker,
                               persistent_workers=args.workers > 0)
-    valid_loader = DataLoader(hand_dataset(root, "valid"), batch_size=4, num_workers=args.workers)
+    valid_loader = DataLoader(hand_dataset(root, "valid", s2=args.s2, subset=args.subset), batch_size=4,
+                              num_workers=args.workers)
     print(f"[{args.name}] datos={args.data} chips={len(train_ds)} pasos/época={steps} "
           f"pérdida={args.loss} dispositivo={device}")
 
-    model = UNet(2, args.base_channels, args.depth, use_skip=not args.no_skip).to(device)
+    model = UNet(in_channels(vars(args)), args.base_channels, args.depth, use_skip=not args.no_skip).to(device)
     if args.init:
         model.load_state_dict(torch.load(args.init, map_location=device, weights_only=True)["model"])
         print(f"Inicializado desde {args.init}")

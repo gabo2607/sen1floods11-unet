@@ -17,15 +17,16 @@ from torch.utils.data import DataLoader
 from .losses import IGNORE
 from .metrics import WaterMetrics
 from .models.unet import UNet
-from .train import hand_dataset
+from .train import hand_dataset, in_channels
 
 
 def load_model(checkpoint, device):
     ckpt = torch.load(checkpoint, map_location=device, weights_only=True)
     a = ckpt["args"]
-    model = UNet(2, a["base_channels"], a["depth"], use_skip=not a["no_skip"]).to(device)
+    model = UNet(in_channels(a), a["base_channels"], a["depth"], use_skip=not a["no_skip"]).to(device)
     model.load_state_dict(ckpt["model"])
     model.eval()
+    model.train_args = a
     return model
 
 
@@ -65,8 +66,12 @@ def main():
     model = load_model(out / "best.pt", device)
 
     results = json.loads((out / "eval.json").read_text()) if (out / "eval.json").exists() else {}
+    a = model.train_args
     for split in args.splits:
-        r, rows = evaluate_split(model, hand_dataset(Path(args.root), split), device, workers=args.workers)
+        if a.get("subset") and split == "lima":  # Lima no tiene Sentinel-2
+            continue
+        ds = hand_dataset(Path(args.root), split, s2=a.get("s2", False), subset=a.get("subset", ""))
+        r, rows = evaluate_split(model, ds, device, workers=args.workers)
         results[split] = r
         with open(out / f"perchip_{split}.csv", "w", newline="") as f:
             w = csv.DictWriter(f, fieldnames=list(rows[0]))
