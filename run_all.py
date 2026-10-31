@@ -19,6 +19,7 @@ Prueba rápida de humo: python run_all.py --quick
 """
 import argparse
 import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -150,8 +151,15 @@ def main():
 
     if not a.skip_download:
         run("-m", "src.data.download", "--root", a.root, "--weak-limit", a.weak)
-    if not (Path(a.root) / "lima" / "flood_lima_data.csv").exists():
-        run("-m", "src.data.lima", "--root", a.root)
+    lima = Path(a.root) / "lima"
+    if not (lima / "flood_lima_data.csv").exists():
+        prebuilt = Path(__file__).resolve().parent / "lima" / "chips"
+        if (prebuilt / "flood_lima_data.csv").exists():
+            print(f"Usando los chips de Lima ya construidos en {prebuilt} "
+                  "(se regeneran con: python -m src.data.lima)")
+            shutil.copytree(prebuilt, lima, dirs_exist_ok=True)
+        else:
+            run("-m", "src.data.lima", "--root", a.root)
 
     def experiment(strategy, loss):
         return {"strategy": strategy, "loss": loss, "label": f"{LABELS[strategy]} · {LOSSES[loss]}",

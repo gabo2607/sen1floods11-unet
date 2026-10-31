@@ -20,6 +20,8 @@ Preprocesamiento para igualar a Sen1Floods11 (σ⁰ en dB, EPSG:4326, 8.983e-5°
 import argparse
 import csv
 import json
+import time
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -40,9 +42,15 @@ MIN_FLOOD = 500  # píxeles de inundación EMSN038 para conservar un chip (~5 ha
 LAYERS = Path(__file__).resolve().parents[2] / "lima" / "emsn038_layers.geojson"
 
 
-def get_json(url):
-    with urllib.request.urlopen(url) as r:
-        return json.load(r)
+def get_json(url, tries=6):
+    for i in range(tries):  # Planetary Computer responde 429 si hay muchas peticiones seguidas
+        try:
+            with urllib.request.urlopen(url) as r:
+                return json.load(r)
+        except urllib.error.HTTPError as e:
+            if e.code != 429 or i == tries - 1:
+                raise
+            time.sleep(10 * 2 ** i)
 
 
 def grid_for(layers):
