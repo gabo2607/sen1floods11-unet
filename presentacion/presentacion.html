@@ -29,26 +29,27 @@ body{font-family:var(--body);color:var(--ink);-webkit-print-color-adjust:exact;p
 .hdr .who{position:absolute;right:0;top:28px;font:700 8.5px var(--head);letter-spacing:.14em;color:var(--uni)}
 .num{position:absolute;right:47px;bottom:14px;font:700 8.5px var(--head);letter-spacing:.14em;color:var(--ink-3)}
 .body{position:absolute;left:48px;right:48px;top:74px;bottom:34px}
-h2{font:700 25px/1.15 var(--head);color:var(--ink);margin-bottom:12px}
-.lead{font-size:15.5px;line-height:1.4;margin-bottom:12px}
+h2{font:700 24px/1.15 var(--head);color:var(--ink);margin-bottom:6px}
+.ask{font-size:12.5px;font-style:italic;color:var(--ink-2);margin-bottom:12px;padding-left:10px;border-left:3px solid var(--gold)}
+.lead{font-size:15px;line-height:1.4;margin-bottom:12px}
 .small{font-size:11.5px;color:var(--ink-2);line-height:1.4}
 .cap{font:700 9px var(--head);letter-spacing:.12em;color:var(--uni);text-transform:uppercase;margin:0 0 3px}
 
 .row{display:flex;gap:12px}
 .col{display:flex;flex-direction:column;gap:10px}
 .stat{flex:1;background:var(--cream);border-top:3px solid var(--gold);padding:10px 14px 11px}
-.stat .v{font:700 27px/1 var(--head);color:var(--ink)}
+.stat .v{font:700 26px/1 var(--head);color:var(--ink)}
 .stat .l{font-size:11.5px;color:var(--ink-2);margin-top:6px;line-height:1.3}
 .stat.hi{background:var(--uni);border-top-color:var(--uni)}
 .stat.hi .v,.stat.hi .l{color:var(--white)}
-.card{flex:1;background:var(--paper);border:1px solid var(--rule);border-top:3px solid var(--gold);padding:10px 14px 12px}
-.card h3{font:700 13.5px var(--head);margin-bottom:5px}
-.card p,.card li{font-size:12.5px;line-height:1.42}
-.card ul{padding-left:15px}
+.card{flex:1;background:var(--paper);border:1px solid var(--rule);border-top:3px solid var(--gold);padding:9px 13px 11px}
+.card h3{font:700 13.5px var(--head);margin-bottom:4px}
+.card p,.card li{font-size:12.3px;line-height:1.4}
+.card ul,.card ol{padding-left:16px}
 .card.alert{background:var(--uni-soft);border-color:#ecd9d6;border-top-color:var(--uni)}
 .card.alert h3{color:var(--uni)}
 
-table{width:100%;border-collapse:collapse;font-size:12.5px}
+table{width:100%;border-collapse:collapse;font-size:12.3px}
 th{font:700 8.5px var(--head);letter-spacing:.13em;color:var(--uni);text-transform:uppercase;text-align:left;padding:5px 7px;border-bottom:1px solid var(--uni-line)}
 td{padding:5px 7px;border-bottom:1px solid var(--rule);line-height:1.28}
 td.c,th.c{text-align:center}
@@ -57,9 +58,9 @@ tr.hl td{background:var(--cream);font-weight:700}
 
 .fig{display:block;max-width:100%}
 .kicker{font:700 10px var(--head);letter-spacing:.32em;color:var(--uni)}
-.concl{display:flex;gap:18px;align-items:baseline;margin-bottom:10px}
-.concl .n{font:700 19px var(--head);color:var(--uni);width:28px;flex:none}
-.concl .t{font:400 15px/1.38 var(--body)}
+.concl{display:flex;gap:14px;align-items:baseline;margin-bottom:7px}
+.concl .n{font:700 16px var(--head);color:var(--uni);width:24px;flex:none}
+.concl .t{font:400 13px/1.35 var(--body)}
 .legend{display:flex;gap:14px;font-size:10.5px;color:var(--ink-2)}
 .legend span i{display:inline-block;width:11px;height:8px;margin-right:4px;vertical-align:-1px}
 
@@ -67,13 +68,12 @@ tr.hl td{background:var(--cream);font-weight:700}
 .cover .left::after{content:"";position:absolute;right:0;top:0;bottom:0;width:7px;background:var(--gold-2)}
 .cover .left img{position:absolute;left:73px;top:130px;width:140px}
 .cover .left .name{position:absolute;left:0;right:7px;top:340px;text-align:center;font:700 17px/1.45 var(--head);letter-spacing:.42em;color:var(--white)}
-.cover .deco{position:absolute;left:330px;top:30px}
-.cover .txt{position:absolute;left:348px;right:56px;top:96px}
+.cover .txt{position:absolute;left:350px;right:70px;top:108px}
 .cover h1{font:700 32px/1.12 var(--head);margin:14px 0 12px}
 .cover .sub{font-size:15.5px;line-height:1.4;color:var(--ink-2)}
 .cover hr{border:0;border-top:1.5px solid var(--uni);margin:20px 0 16px}
 .cover .authors{display:grid;grid-template-columns:1fr 1fr;row-gap:9px;font-size:14px}
-.cover .meta{margin-top:18px;font:700 9px/1.9 var(--head);letter-spacing:.14em;color:var(--ink-2)}
+.cover .meta{margin-top:20px;font:700 9px/2 var(--head);letter-spacing:.14em;color:var(--ink-2)}
 .cover .meta .r{color:var(--uni)}
 </style>
 </head>
@@ -82,102 +82,116 @@ tr.hl td{background:var(--cream);font-weight:700}
 <!-- 1 · PORTADA -->
 <section class="slide cover">
   <div class="left"><img src="img/logo_portada.png" alt="Escudo UNI"><div class="name">UNIVERSIDAD<br>NACIONAL DE<br>INGENIERIA</div></div>
-  <svg class="deco" width="610" height="490" viewBox="0 0 610 490" fill="none" aria-hidden="true">
-    <path d="M38 38 C120 0 190 2 248 10 C300 18 330 50 400 30 C470 10 530 6 570 17 C600 140 606 300 584 444 C540 470 470 462 406 470 C340 476 300 450 248 466 C190 482 120 476 70 462 C40 350 30 200 38 38 Z" stroke="#d8c78f" stroke-width="1.2"/>
-    <g fill="#fff" stroke="#70160f" stroke-width="1.4"><circle cx="38" cy="38" r="3.5"/><circle cx="248" cy="10" r="3.5"/><circle cx="400" cy="30" r="3.5"/><circle cx="570" cy="17" r="3.5"/><circle cx="584" cy="444" r="3.5"/><circle cx="406" cy="470" r="3.5"/><circle cx="248" cy="466" r="3.5"/><circle cx="70" cy="462" r="3.5"/></g>
-  </svg>
   <div class="txt">
     <div class="kicker">REDES NEURONALES · EXAMEN PARCIAL · PREGUNTA 2</div>
     <h1>Mapeo de inundaciones con Sentinel-1 y una U-Net propia</h1>
     <div class="sub">Etiquetas doradas vs. débiles en Sen1Floods11 y generalización a Lima 2017 (Copernicus EMSN038)</div>
     <hr>
     <div class="authors"><span>Gabriel Ángel Nizama Duque</span><span>César Luis Jiménez Miranda</span><span>Juan José Pino Reyes</span><span>Martín Alexis Valdiviezo Palma</span></div>
-    <div class="meta"><span class="r">OCTUBRE DE 2026</span> &nbsp;/&nbsp; GITHUB.COM/GABO2607/SEN1FLOODS11-UNET<br>MAESTRÍA EN INTELIGENCIA ARTIFICIAL &nbsp;<span class="r">/</span>&nbsp; ESCUELA DE POSGRADO</div>
+    <div class="meta"><span class="r">GRUPO 4</span> &nbsp;<span class="r">/</span>&nbsp; OCTUBRE DE 2026<br>MAESTRÍA EN INTELIGENCIA ARTIFICIAL &nbsp;<span class="r">/</span>&nbsp; ESCUELA DE POSGRADO<br><span class="r">GITHUB.COM/GABO2607/SEN1FLOODS11-UNET</span></div>
   </div>
-  <div class="num">1 / 7</div>
+  <div class="num">1 / 10</div>
 </section>
 
 <!-- 2 · PROBLEMA Y DATOS -->
-<section class="slide" data-sec="Problema y datos">
+<section class="slide" data-sec="Problema y datos" data-who="PREGUNTA 2 · CONTEXTO">
   <div class="body">
     <h2>El problema y los datos</h2>
-    <p class="lead">En una inundación, las nubes ciegan a los satélites ópticos. El radar de Sentinel-1 (VV + VH) las atraviesa, de día y de noche.</p>
+    <p class="lead">En una inundación, las nubes ciegan a los satélites ópticos. El radar de Sentinel-1 (VV + VH) las atraviesa, de día y de noche: el agua calma refleja la señal lejos del sensor y se ve <b>oscura</b>.</p>
     <div class="row" style="margin-bottom:12px">
       <div class="stat"><div class="v">11</div><div class="l">eventos de inundación (Sen1Floods11)</div></div>
-      <div class="stat hi"><div class="v">446</div><div class="l">chips etiquetados a mano (512×512, 10 m)</div></div>
-      <div class="stat"><div class="v">4,384</div><div class="l">chips con etiqueta débil (umbral de Otsu)</div></div>
-      <div class="stat"><div class="v">19</div><div class="l">chips de Lima 2017 construidos por nosotros</div></div>
+      <div class="stat hi"><div class="v">446</div><div class="l">chips <b>dorados</b>: dibujados a mano por expertos</div></div>
+      <div class="stat"><div class="v">4,384</div><div class="l">chips <b>débiles</b>: umbral de Otsu, sin humano</div></div>
+      <div class="stat"><div class="v">10 m</div><div class="l">resolución; chips de 512×512 px</div></div>
     </div>
     <div class="row" style="gap:20px;align-items:flex-start">
-      <div style="flex:none;width:300px">
+      <div style="flex:none;width:330px">
         <table>
-          <tr><th>Conjunto</th><th class="c">Chips</th></tr>
-          <tr><td>Entrenamiento (dorados)</td><td class="c">252</td></tr>
-          <tr><td>Validación / test</td><td class="c">89 / 90</td></tr>
-          <tr><td>Bolivia (evento retenido)</td><td class="c">15</td></tr>
-          <tr><td>Débiles usados<sup>*</sup></td><td class="c">1,000</td></tr>
-          <tr class="hl"><td>Lima 2017</td><td class="c">19</td></tr>
+          <tr><th>Conjunto</th><th class="c">Chips</th><th>Uso</th></tr>
+          <tr><td>Entrenamiento (dorados)</td><td class="c">252</td><td>entrenar</td></tr>
+          <tr><td>Validación / test</td><td class="c">89 / 90</td><td>elegir / medir</td></tr>
+          <tr><td>Bolivia (evento retenido)</td><td class="c">15</td><td>región nueva</td></tr>
+          <tr><td>Débiles usados<sup>*</sup></td><td class="c">1,000</td><td>ablación</td></tr>
+          <tr class="hl"><td>Lima 2017 (propia)</td><td class="c">19</td><td>región Perú</td></tr>
         </table>
-        <p class="small" style="margin-top:6px"><sup>*</sup> Sin Bolivia ni ubicaciones de validación o test: sin fuga.</p>
+        <p class="small" style="margin-top:6px"><sup>*</sup> Sin Bolivia ni ubicaciones de validación o test: sin fuga de información.</p>
       </div>
       <div style="flex:1">
-        <div class="cap">Región propia: Sentinel-1 del 17-mar-2017 + delineación Copernicus EMSN038</div>
-        <img class="fig" src="img/lima_overlay.png" alt="VV de Huachipa con la delineación EMSN038" style="width:100%">
+        <img class="fig" src="img/chip_ejemplo.png" alt="Chip de ejemplo: VV, VH y etiqueta" style="width:100%">
+        <p class="small" style="margin-top:4px">Chip de India (test): el agua se ve oscura en VV y VH; la etiqueta dorada la marca en azul.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 3 · MÉTODO -->
-<section class="slide" data-sec="Método">
+<!-- 3 · ENTREGABLE 1 -->
+<section class="slide" data-sec="Modelo" data-who="PREGUNTA 2 · ENTREGABLE 1">
   <div class="body">
-    <h2>U-Net desde cero y diseño experimental</h2>
+    <h2>Entregable 1 · U-Net implementada desde cero</h2>
+    <p class="ask">“Implementación personalizada de U-Net en PyTorch, sin copiar librerías de segmentación, con entrada VV y VH.”</p>
     <div class="row" style="gap:20px;align-items:flex-start">
-      <div style="flex:none;width:420px">
-        <svg width="420" height="262" viewBox="0 0 530 330" role="img" aria-label="Diagrama de la U-Net">
-          <style>.b{fill:#f6f1e2;stroke:#d8c78f}.bd{fill:#70160f}.t{font:600 12px Jost,Futura,sans-serif;fill:#1f1d1c}.tw{font:600 12px Jost,Futura,sans-serif;fill:#fff}.s{font:12px Helvetica,Arial,sans-serif;fill:#5d5b5f}.sk{stroke:#d8c78f;stroke-width:1.4;stroke-dasharray:4 3;fill:none}.ar{stroke:#5d5b5f;stroke-width:1.2;fill:none;marker-end:url(#a)}</style>
-          <defs><marker id="a" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8z" fill="#5d5b5f"/></marker></defs>
-          <text class="s" x="4" y="22">VV + VH</text>
-          <rect class="b" x="60" y="10" width="70" height="34" rx="2"/><text class="t" x="95" y="31" text-anchor="middle">32</text>
-          <rect class="b" x="80" y="80" width="70" height="34" rx="2"/><text class="t" x="115" y="101" text-anchor="middle">64</text>
-          <rect class="b" x="100" y="150" width="70" height="34" rx="2"/><text class="t" x="135" y="171" text-anchor="middle">128</text>
-          <rect class="b" x="120" y="220" width="70" height="34" rx="2"/><text class="t" x="155" y="241" text-anchor="middle">256</text>
-          <rect class="bd" x="200" y="282" width="130" height="34" rx="2"/><text class="tw" x="265" y="303" text-anchor="middle">512 · cuello</text>
-          <rect class="b" x="340" y="220" width="70" height="34" rx="2"/><text class="t" x="375" y="241" text-anchor="middle">256</text>
-          <rect class="b" x="360" y="150" width="70" height="34" rx="2"/><text class="t" x="395" y="171" text-anchor="middle">128</text>
-          <rect class="b" x="380" y="80" width="70" height="34" rx="2"/><text class="t" x="415" y="101" text-anchor="middle">64</text>
-          <rect class="b" x="400" y="10" width="70" height="34" rx="2"/><text class="t" x="435" y="31" text-anchor="middle">32</text>
-          <text class="s" x="478" y="31">agua?</text>
-          <path class="ar" d="M95 44 L110 78"/><path class="ar" d="M115 114 L130 148"/><path class="ar" d="M135 184 L150 218"/><path class="ar" d="M160 254 L215 280"/>
-          <path class="ar" d="M315 282 L360 256"/><path class="ar" d="M380 220 L390 186"/><path class="ar" d="M400 150 L410 116"/><path class="ar" d="M420 80 L430 46"/>
-          <path class="sk" d="M130 27 L398 27"/><path class="sk" d="M150 97 L378 97"/><path class="sk" d="M170 167 L358 167"/><path class="sk" d="M190 237 L338 237"/>
-          <text class="s" x="264" y="20" text-anchor="middle">conexiones de salto</text>
-        </svg>
-        <div class="row" style="margin-top:6px">
-          <div class="stat hi"><div class="v">7.8 M</div><div class="l">parámetros, sin librerías de segmentación</div></div>
-          <div class="stat"><div class="v">~6 min</div><div class="l">por entrenamiento en GPU T4 (40 épocas)</div></div>
+      <svg width="470" height="294" viewBox="0 0 530 330" role="img" aria-label="Diagrama de la U-Net" style="flex:none">
+        <style>.b{fill:#f6f1e2;stroke:#d8c78f}.bd{fill:#70160f}.t{font:600 12px Jost,Futura,sans-serif;fill:#1f1d1c}.tw{font:600 12px Jost,Futura,sans-serif;fill:#fff}.s{font:11.5px Helvetica,Arial,sans-serif;fill:#5d5b5f}.sk{stroke:#d8c78f;stroke-width:1.4;stroke-dasharray:4 3;fill:none}.ar{stroke:#5d5b5f;stroke-width:1.2;fill:none;marker-end:url(#a)}</style>
+        <defs><marker id="a" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8z" fill="#5d5b5f"/></marker></defs>
+        <text class="s" x="2" y="22">VV + VH</text><text class="s" x="2" y="36">2 canales</text>
+        <rect class="b" x="60" y="10" width="70" height="34" rx="2"/><text class="t" x="95" y="31" text-anchor="middle">32</text>
+        <rect class="b" x="80" y="80" width="70" height="34" rx="2"/><text class="t" x="115" y="101" text-anchor="middle">64</text>
+        <rect class="b" x="100" y="150" width="70" height="34" rx="2"/><text class="t" x="135" y="171" text-anchor="middle">128</text>
+        <rect class="b" x="120" y="220" width="70" height="34" rx="2"/><text class="t" x="155" y="241" text-anchor="middle">256</text>
+        <rect class="bd" x="200" y="282" width="130" height="34" rx="2"/><text class="tw" x="265" y="303" text-anchor="middle">512 · cuello</text>
+        <rect class="b" x="340" y="220" width="70" height="34" rx="2"/><text class="t" x="375" y="241" text-anchor="middle">256</text>
+        <rect class="b" x="360" y="150" width="70" height="34" rx="2"/><text class="t" x="395" y="171" text-anchor="middle">128</text>
+        <rect class="b" x="380" y="80" width="70" height="34" rx="2"/><text class="t" x="415" y="101" text-anchor="middle">64</text>
+        <rect class="b" x="400" y="10" width="70" height="34" rx="2"/><text class="t" x="435" y="31" text-anchor="middle">32</text>
+        <text class="s" x="476" y="22">1×1 →</text><text class="s" x="476" y="36">agua / no</text>
+        <path class="ar" d="M95 44 L110 78"/><path class="ar" d="M115 114 L130 148"/><path class="ar" d="M135 184 L150 218"/><path class="ar" d="M160 254 L215 280"/>
+        <path class="ar" d="M315 282 L360 256"/><path class="ar" d="M380 220 L390 186"/><path class="ar" d="M400 150 L410 116"/><path class="ar" d="M420 80 L430 46"/>
+        <path class="sk" d="M130 27 L398 27"/><path class="sk" d="M150 97 L378 97"/><path class="sk" d="M170 167 L358 167"/><path class="sk" d="M190 237 L338 237"/>
+        <text class="s" x="264" y="20" text-anchor="middle">conexiones de salto (concatenación)</text>
+        <text class="s" x="40" y="300">↓ codificador: max-pool 2×2</text><text class="s" x="345" y="300">↑ decodificador: conv. transpuesta</text>
+      </svg>
+      <div class="col" style="flex:1">
+        <div class="row" style="gap:10px">
+          <div class="stat hi"><div class="v">7.8 M</div><div class="l">parámetros</div></div>
+          <div class="stat"><div class="v">4</div><div class="l">niveles de profundidad</div></div>
         </div>
+        <div class="card"><h3>Cada bloque</h3><p>(Conv 3×3 → BatchNorm → ReLU) × 2. Profundidad y conexiones de salto configurables. Código en <b>src/models/unet.py</b>.</p></div>
+        <div class="card"><h3>Entrenamiento</h3><p>AdamW, lr 10⁻³ con decaimiento coseno; lotes de 8 recortes de 256×256 con volteos; 40 épocas; precisión mixta. ~6 min en una GPU T4.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 · ENTREGABLE 2 · DISEÑO -->
+<section class="slide" data-sec="Ablación" data-who="PREGUNTA 2 · ENTREGABLE 2">
+  <div class="body">
+    <h2>Entregable 2 · Diseño de la ablación</h2>
+    <p class="ask">“Comparar (a) solo los chips dorados vs. añadir los débiles, y (b) la función de pérdida: BCE vs. Dice vs. combinada.”</p>
+    <div class="row" style="gap:20px;align-items:flex-start">
+      <div style="flex:1.2">
+        <table>
+          <tr><th></th><th>Datos de entrenamiento</th><th>Pérdida</th></tr>
+          <tr><td><span class="dot" style="background:#2a78d6"></span><b>(a) gold</b></td><td>Solo los 252 dorados</td><td>BCE+Dice</td></tr>
+          <tr><td><span class="dot" style="background:#eb6834"></span><b>(a) mixed</b></td><td>Dorados + 1,000 débiles mezclados</td><td>BCE+Dice</td></tr>
+          <tr><td><span class="dot" style="background:#1baf7a"></span><b>(a) pre → ft</b></td><td>20 ép. con débiles, 20 ép. afinando con dorados</td><td>BCE+Dice</td></tr>
+          <tr><td><b>(b) bce</b></td><td>Ganador de (a): solo dorados</td><td>Solo BCE</td></tr>
+          <tr><td><b>(b) dice</b></td><td>Ganador de (a): solo dorados</td><td>Solo Dice</td></tr>
+        </table>
+        <div class="card" style="margin-top:12px"><h3>Pérdidas</h3><p><b>BCE</b>: error píxel a píxel. <b>Dice</b>: cuánto se superpone el agua predicha con la real; robusta al desbalance agua/tierra. <b>Combinada</b>: el promedio de ambas.</p></div>
       </div>
       <div class="col" style="flex:1">
-        <table>
-          <tr><th></th><th>Datos</th><th>Pérdida</th></tr>
-          <tr><td><span class="dot" style="background:#2a78d6"></span><b>gold</b></td><td>Solo dorados</td><td>BCE+Dice</td></tr>
-          <tr><td><span class="dot" style="background:#eb6834"></span><b>mixed</b></td><td>Dorados + débiles</td><td>BCE+Dice</td></tr>
-          <tr><td><span class="dot" style="background:#1baf7a"></span><b>pre → ft</b></td><td>Débiles, luego afinar</td><td>BCE+Dice</td></tr>
-          <tr><td><b>bce / dice</b></td><td>Ganador de arriba</td><td>BCE · Dice</td></tr>
-        </table>
-        <div class="card"><h3>Comparación justa</h3><p>Mismo número de pasos para todos. Todo se decide <b>solo con validación</b>; test, Bolivia y Lima se miran una vez, al final.</p></div>
-        <div class="card alert"><h3>Dos rondas</h3><p>Ronda 1 con una semilla; como el IoU oscilaba entre épocas, en la ronda 2 repetimos todo: <b>media ± desviación sobre <span data-i="seeds">3</span> semillas</b>.</p></div>
+        <div class="card"><h3>Comparación justa</h3><p>Todos hacen el <b>mismo número de pasos</b> de entrenamiento. Todo se decide <b>solo con validación</b>; test, Bolivia y Lima se miran una vez, al final.</p></div>
+        <div class="card alert"><h3>Dos rondas de entrenamiento</h3><p><b>Ronda 1:</b> una semilla por experimento. El IoU de validación oscilaba mucho entre épocas (de 0.61 a 0.46).<br><b>Ronda 2:</b> repetimos los 5 con 2 semillas más. Reportamos <b>media ± desviación sobre 3 entrenamientos</b>.</p></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 4 · ABLACIÓN -->
-<section class="slide" data-sec="Resultados">
+<!-- 5 · ENTREGABLE 2 · RESULTADOS -->
+<section class="slide" data-sec="Ablación" data-who="PREGUNTA 2 · ENTREGABLE 2">
   <div class="body">
-    <h2>¿Ayudan las etiquetas débiles?</h2>
-    <table style="font-size:12.5px">
+    <h2>Entregable 2 · Resultados: calidad le gana a cantidad</h2>
+    <table style="font-size:12.3px;margin-top:4px">
       <tr><th>Experimento</th><th class="c">IoU val</th><th class="c">IoU test</th><th class="c">IoU/chip test</th><th class="c">IoU Bolivia</th><th class="c">IoU Lima</th></tr>
       <tr data-row="gold"><td><span class="dot" style="background:#2a78d6"></span>Solo dorados · BCE+Dice</td><td class="c" data-pm="gold.val"></td><td class="c" data-pm="gold.test"></td><td class="c" data-pm="gold.test_chip"></td><td class="c" data-pm="gold.bol"></td><td class="c" data-pm="gold.lima"></td></tr>
       <tr data-row="mixed"><td><span class="dot" style="background:#eb6834"></span>Dorados + débiles · BCE+Dice</td><td class="c" data-pm="mixed.val"></td><td class="c" data-pm="mixed.test"></td><td class="c" data-pm="mixed.test_chip"></td><td class="c" data-pm="mixed.bol"></td><td class="c" data-pm="mixed.lima"></td></tr>
@@ -185,84 +199,122 @@ tr.hl td{background:var(--cream);font-weight:700}
       <tr data-row="bce"><td>Solo dorados · BCE</td><td class="c" data-pm="bce.val"></td><td class="c" data-pm="bce.test"></td><td class="c" data-pm="bce.test_chip"></td><td class="c" data-pm="bce.bol"></td><td class="c" data-pm="bce.lima"></td></tr>
       <tr data-row="dice"><td>Solo dorados · Dice</td><td class="c" data-pm="dice.val"></td><td class="c" data-pm="dice.test"></td><td class="c" data-pm="dice.test_chip"></td><td class="c" data-pm="dice.bol"></td><td class="c" data-pm="dice.lima"></td></tr>
     </table>
-    <p class="small" style="margin-top:5px">Media ± desviación estándar sobre <span data-i="seeds">3</span> semillas. Resaltado: el mejor por IoU de validación.</p>
-    <div class="row" style="margin-top:12px">
-      <div class="card alert"><h3>(a) Datos: no, a igual cómputo</h3><p>Mezclar débiles es lo peor: 4 de cada 5 chips que ve la red traen los errores del umbral de Otsu. Preentrenar y afinar recupera casi todo, pero no supera a los dorados solos.</p></div>
-      <div class="card"><h3>(b) Pérdida: empate</h3><p>BCE sola y BCE+Dice empatan en validación, pero BCE varía 4 veces más entre semillas y rinde menos por chip y en Bolivia. Con una sola semilla habríamos concluido otra cosa.</p></div>
-      <div class="card"><h3>IoU global vs. por chip</h3><p>El IoU por chip es menor: en chips con poca agua, unos pocos píxeles errados hunden el cociente.</p></div>
+    <p class="small" style="margin-top:4px">Media ± desviación estándar sobre <span data-i="seeds">3</span> semillas. Resaltado: el mejor por IoU de validación (criterio de selección).</p>
+    <div class="row" style="margin-top:10px">
+      <div class="card alert"><h3>(a) Las débiles no ayudaron</h3><p>Mezclarlas resta <b>~0.065 de IoU</b> en las 3 semillas: es real, no azar. 4 de cada 5 chips que veía la red venían del umbral de Otsu, y aprendió sus errores. Preentrenar y afinar recupera casi todo, pero no supera a los dorados solos.</p></div>
+      <div class="card"><h3>(b) La pérdida casi no importa</h3><p>BCE y BCE+Dice <b>empatan</b> (0.619 vs. 0.617); BCE varía 4 veces más entre semillas. Con una sola semilla habríamos concluido que BCE+Dice era mejor: la ronda 2 evitó esa conclusión falsa.</p></div>
     </div>
   </div>
 </section>
 
-<!-- 5 · TEST Y ERRORES SAR -->
-<section class="slide" data-sec="Resultados">
+<!-- 6 · ENTREGABLE 3 -->
+<section class="slide" data-sec="Evaluación" data-who="PREGUNTA 2 · ENTREGABLE 3">
   <div class="body">
-    <h2>Test dorado: aciertos y errores del radar</h2>
-    <div class="row" style="gap:18px;align-items:flex-start">
-      <div class="col" style="flex:none;width:262px;gap:8px">
-        <div class="row" style="gap:8px">
-          <div class="stat hi"><div class="v" data-v="single.test.iou"></div><div class="l">IoU</div></div>
+    <h2>Entregable 3 · Evaluación en distribución (test dorado)</h2>
+    <p class="ask">“IoU, F1, precisión y recall de la clase agua, más matriz de confusión comentada.”</p>
+    <div class="row" style="gap:20px;align-items:flex-start">
+      <img class="fig" src="img/confusion_test.png" alt="Matriz de confusión del test" style="width:270px;flex:none">
+      <div class="col" style="flex:1">
+        <div class="row" style="gap:10px">
+          <div class="stat hi"><div class="v" data-v="single.test.iou"></div><div class="l">IoU agua</div></div>
           <div class="stat"><div class="v" data-v="single.test.f1"></div><div class="l">F1</div></div>
-        </div>
-        <div class="row" style="gap:8px">
           <div class="stat"><div class="v" data-v="single.test.precision"></div><div class="l">precisión</div></div>
           <div class="stat"><div class="v" data-v="single.test.recall"></div><div class="l">recall</div></div>
         </div>
-        <img class="fig" src="img/confusion_test.png" alt="Matriz de confusión del test" style="width:178px;margin:0 auto">
-        <p class="small">Error dominante: <b>omisión</b>. Se pierde el <b data-pct="single.test.fn_rate"></b> del agua; solo el <b data-pct="single.test.fp_rate"></b> de la tierra se marca como agua.</p>
-      </div>
-      <div style="flex:1">
-        <div class="cap">1 · Vegetación inundada: los tallos rebotan la señal → omisión</div>
-        <img class="fig" src="img/err_veg.png" alt="Vegetación inundada" style="height:104px;margin-bottom:5px">
-        <div class="cap">2 · Suelo húmedo y liso, tan oscuro como el agua → comisión</div>
-        <img class="fig" src="img/err_suelo.png" alt="Suelo húmedo" style="height:104px;margin-bottom:5px">
-        <div class="cap">3 · Doble rebote urbano: fachada + agua dan un eco brillante</div>
-        <img class="fig" src="img/err_urbano.png" alt="Zona urbana" style="height:104px">
-        <div class="legend" style="margin-top:3px"><span><i style="background:#8a8984"></i>acierto</span><span><i style="background:#eb6834"></i>falso positivo</span><span><i style="background:#2a78d6"></i>falso negativo</span></div>
+        <div class="card alert"><h3>Qué dice la matriz: el error típico es la omisión</h3><p>El modelo <b>no ve el <span data-pct="single.test.fn_rate"></span> del agua</b> (falsos negativos), pero casi nunca inventa agua: solo el <b data-pct="single.test.fp_rate"></b> de la tierra se marca como agua. Como hay ~7 veces más tierra que agua, esos pocos falsos positivos igual pesan en la precisión.</p></div>
+        <div class="card"><h3>IoU global vs. por chip, y por evento</h3><p>El IoU promedio por chip (0.38) es menor que el global: en chips con poca agua, pocos píxeles errados hunden el cociente. Por evento va de <b>0.87 en Nigeria</b> (agua abierta) a <b>0.20 en Pakistán</b> (agua somera entre cultivos).</p></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 6 · GENERALIZACIÓN -->
-<section class="slide" data-sec="Generalización">
+<!-- 7 · ENTREGABLE 4 · CONSTRUCCIÓN DE LIMA -->
+<section class="slide" data-sec="Generalización" data-who="PREGUNTA 2 · ENTREGABLE 4">
   <div class="body">
-    <h2>Bolivia sí, Lima no: el “agua” de Lima se ve como tierra</h2>
-    <div class="row" style="margin-bottom:12px">
+    <h2>Entregable 4 · Construimos la región de prueba de Lima</h2>
+    <p class="ask">“Entrenar solo con Sen1Floods11 y evaluar en una región de Lima construida con Sentinel-1 de marzo 2017 + delineación EMSN038.”</p>
+    <div class="row" style="margin-bottom:10px">
+      <div class="card"><h3>1 · Imagen de radar</h3><p>Sentinel-1B, <b>17-mar-2017</b>, VV+VH: la escena dual-pol más cercana (la cita el propio informe de Copernicus).</p></div>
+      <div class="card"><h3>2 · Etiqueta oficial</h3><p>Copernicus <b>EMSN038</b>, capa <i>Potential Maximum Flood Extent</i> (WorldView-2, 18 y 21-mar).</p></div>
+      <div class="card"><h3>3 · Mismo formato</h3><p>σ⁰ en dB, 10 m, EPSG:4326, chips de 512×512; polígonos rasterizados en la misma grilla.</p></div>
+      <div class="card alert"><h3>Resultado</h3><p><b>19 chips</b>, ~1.9 km² de agua de referencia. Bolivia se evalúa además como respaldo.</p></div>
+    </div>
+    <img class="fig" src="img/lima_overlay.png" alt="VV de Huachipa con la delineación EMSN038" style="height:236px;margin:0 auto">
+  </div>
+</section>
+
+<!-- 8 · ENTREGABLE 4 · BRECHA E HIPÓTESIS -->
+<section class="slide" data-sec="Generalización" data-who="PREGUNTA 2 · ENTREGABLE 4">
+  <div class="body">
+    <h2>Entregable 4 · Brecha: Bolivia sí, Lima no. ¿Por qué?</h2>
+    <div class="row" style="margin-bottom:10px">
       <div class="stat"><div class="v" data-m="best.test"></div><div class="l">IoU test (eventos vistos)</div></div>
-      <div class="stat"><div class="v" data-m="best.bol"></div><div class="l">IoU Bolivia (evento retenido): brecha pequeña</div></div>
+      <div class="stat"><div class="v" data-m="best.bol"></div><div class="l">IoU Bolivia (nunca vista): brecha pequeña</div></div>
       <div class="stat hi"><div class="v" data-m="best.lima"></div><div class="l">IoU Lima 2017: colapso de todos los modelos</div></div>
     </div>
+    <div class="row" style="gap:16px;align-items:flex-start">
+      <div style="flex:none;width:470px">
+        <img class="fig" src="img/backscatter.png" alt="Distribución de brillo agua vs. tierra" style="width:470px">
+        <p class="small" style="margin-top:2px">Brillo del radar: <b style="color:#2a78d6">agua</b> vs. <b style="color:#eb6834">tierra</b>. En test y Bolivia se separan (~8 dB); en Lima se superponen (−8.7 vs. −9.0 dB en VV).</p>
+      </div>
+      <div class="card alert" style="flex:1"><h3>Hipótesis (con evidencia)</h3><ol>
+        <li><b>Huaicos:</b> agua turbulenta con lodo; rugosa, no espejo, así que no se ve oscura.</li>
+        <li><b>Doble rebote urbano</b> en Huachipa: más ecos saturados (+1 dB) en el “agua” que en la tierra.</li>
+        <li><b>Etiqueta de otra fecha y criterio:</b> extensión <i>máxima</i>, delineada el 21-mar con el agua en retroceso; el radar es del 17.</li>
+        <li><b>Escala:</b> franjas de pocas decenas de metros, al límite de los 10 m.</li>
+      </ol><p style="margin-top:5px"><b>Conclusión:</b> ningún modelo solo-SAR puede separar ese “agua” de la tierra; falla la correspondencia radar–etiqueta, no la red.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 · ENTREGABLE 5 -->
+<section class="slide" data-sec="Errores del radar" data-who="PREGUNTA 2 · ENTREGABLE 5">
+  <div class="body">
+    <h2>Entregable 5 · Tres errores característicos del SAR</h2>
     <div class="row" style="gap:18px;align-items:flex-start">
-      <img class="fig" src="img/backscatter.png" alt="Distribución de retrodispersión agua vs. tierra" style="width:520px">
-      <div class="col" style="flex:1">
-        <table style="font-size:12px">
-          <tr><th>VV, mediana</th><th class="c">Agua</th><th class="c">Tierra</th></tr>
-          <tr><td>Test</td><td class="c">−17.6</td><td class="c">−9.5 dB</td></tr>
-          <tr><td>Bolivia</td><td class="c">−16.5</td><td class="c">−8.4 dB</td></tr>
-          <tr class="hl"><td>Lima</td><td class="c">−8.7</td><td class="c">−9.0 dB</td></tr>
-        </table>
-        <div class="card alert"><h3>Ningún modelo solo-SAR podría separarlos</h3><ul><li>Huaicos: agua turbulenta con lodo, no espejo</li><li>Doble rebote en Huachipa (picos de +1 dB)</li><li>EMSN038: extensión <i>máxima</i>, del 21-mar, ya en retroceso</li></ul></div>
+      <div style="flex:none;width:480px">
+        <div class="cap">1 · Vegetación inundada → omisión</div>
+        <img class="fig" src="img/err_veg.png" alt="Vegetación inundada" style="width:480px;margin-bottom:4px">
+        <div class="cap">2 · Suelo húmedo y liso → comisión</div>
+        <img class="fig" src="img/err_suelo.png" alt="Suelo húmedo" style="width:480px;margin-bottom:4px">
+        <div class="cap">3 · Zona urbana: doble rebote</div>
+        <img class="fig" src="img/err_urbano.png" alt="Zona urbana" style="width:480px">
+      </div>
+      <div class="col" style="flex:1;gap:8px">
+        <div class="legend"><span><i style="background:#8a8984"></i>acierto</span><span><i style="background:#eb6834"></i>falso positivo</span><span><i style="background:#2a78d6"></i>falso negativo</span></div>
+        <div class="card"><h3>1 · Vegetación inundada</h3><p>Arrozales de Pakistán: los tallos sobre el agua rebotan la señal, el agua no se ve oscura y el modelo no la detecta (IoU 0.23).</p></div>
+        <div class="card"><h3>2 · Suelo húmedo y liso</h3><p>Campos anegados o arados son tan oscuros como el agua: el modelo marca 48 mil píxeles de agua que no existe.</p></div>
+        <div class="card"><h3>3 · Doble rebote urbano</h3><p>Señal que rebota en el agua y luego en la pared: eco muy brillante. Fragmenta la predicción entre edificios (España, y Huachipa en Lima).</p></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 7 · CONCLUSIONES -->
-<section class="slide" data-sec="Conclusiones">
+<!-- 10 · ENTREGABLE 6 (BONO) + CONCLUSIONES -->
+<section class="slide" data-sec="Bono y conclusiones" data-who="PREGUNTA 2 · ENTREGABLE 6 (BONO)">
   <div class="body">
-    <h2>Conclusiones</h2>
-    <div class="concl"><div class="n">01</div><div class="t">Una U-Net propia, solo con radar, logra un IoU de <b data-m="best.test"></b> en el test dorado (media de 3 semillas); su error típico es la omisión.</div></div>
-    <div class="concl"><div class="n">02</div><div class="t">A igual cómputo, las etiquetas débiles no ayudaron: mezclarlas resta ~0.07 de IoU en las tres semillas. La pérdida, en cambio, casi no importa: BCE y BCE+Dice empatan.</div></div>
-    <div class="concl"><div class="n">03</div><div class="t">Generaliza a otra inundación de llanura (Bolivia), pero no a Lima 2017: allí el agua no se ve oscura en el radar y la etiqueta es de otra fecha.</div></div>
-    <div class="concl"><div class="n">04</div><div class="t">Para el Perú: afinar con ejemplos locales y sumar elevación (HAND) u óptico antes de confiar en un modelo entrenado en otras regiones.</div></div>
-    <div class="row" id="bono" style="margin-top:4px;align-items:stretch">
-      <div class="card" style="flex:1.6"><h3>Bono · fusión con Sentinel-2 (chips sin nubes)</h3><p id="bono-txt">Mismos 142 chips de entrenamiento, 3 semillas: solo radar frente a radar + 6 bandas ópticas.</p></div>
-      <div class="stat"><div class="v" id="bono-sar">—</div><div class="l">IoU test · solo SAR</div></div>
-      <div class="stat hi"><div class="v" id="bono-fus">—</div><div class="l">IoU test · SAR + óptico</div></div>
+    <h2>Bono: fusión SAR + Sentinel-2, y conclusiones</h2>
+    <div class="row" style="gap:18px;align-items:flex-start">
+      <div class="col" style="flex:1;gap:8px">
+        <p class="ask" style="margin:0">“Añadir bandas ópticas en chips sin nubes y cuantificar si la fusión mejora el IoU.”</p>
+        <div class="row" style="gap:10px">
+          <div class="stat"><div class="v" id="bono-sar">—</div><div class="l">IoU test · solo SAR (2 canales)</div></div>
+          <div class="stat hi"><div class="v" id="bono-fus">—</div><div class="l">IoU test · SAR + 6 bandas ópticas</div></div>
+        </div>
+        <div class="card"><h3>Mismos 142 chips sin nubes, 3 semillas</h3><p>El agua absorbe casi todo el infrarrojo y se separa con nitidez de vegetación, suelo húmedo y ciudad: justo los errores del radar.</p></div>
+        <div class="card alert"><h3>Pero solo existe sin nubes</h3><p>Se descartó el 44 % de los chips; en una tormenta casi nunca hay imagen óptica. Y las etiquetas doradas se dibujaron con ayuda del óptico. El radar sigue siendo la base.</p></div>
+      </div>
+      <div style="flex:1.05">
+        <div class="cap" style="margin-bottom:8px">Conclusiones</div>
+        <div class="concl"><div class="n">01</div><div class="t">Una U-Net propia, solo con radar, logra un IoU de <b data-m="best.test"></b> en test (media de 3 semillas); su error típico es la omisión.</div></div>
+        <div class="concl"><div class="n">02</div><div class="t">Las etiquetas débiles no ayudaron: mezclarlas resta ~0.07 de IoU. La pérdida casi no importa.</div></div>
+        <div class="concl"><div class="n">03</div><div class="t">Repetir con 3 semillas separó las diferencias reales del azar.</div></div>
+        <div class="concl"><div class="n">04</div><div class="t">Generaliza a Bolivia, no a Lima 2017: allí el agua no se ve oscura y la etiqueta es de otra fecha.</div></div>
+        <div class="concl"><div class="n">05</div><div class="t">Para el Perú: ejemplos locales + óptico o elevación cuando estén disponibles.</div></div>
+        <div style="font:700 21px var(--head);color:var(--uni);margin-top:8px">Gracias.</div>
+        <p class="small">Código, modelo y verificación en 3 min: <b>github.com/gabo2607/sen1floods11-unet</b></p>
+      </div>
     </div>
-    <div style="font:700 22px var(--head);color:var(--uni);margin-top:12px">Gracias.</div>
-    <p class="small" style="margin-top:6px">Código reproducible con un solo comando: <b>github.com/gabo2607/sen1floods11-unet</b></p>
   </div>
 </section>
 
@@ -273,8 +325,9 @@ tr.hl td{background:var(--cream);font-weight:700}
   slides.forEach(function(s,i){
     if(s.dataset.sec){
       var h=document.createElement("div"); h.className="hdr";
-      h.innerHTML='<img src="img/logo_header.png" alt=""><div class="uni">UNIVERSIDAD NACIONAL DE INGENIERIA</div><div class="line"></div><div class="sec"></div><div class="who">PREGUNTA 2</div>';
+      h.innerHTML='<img src="img/logo_header.png" alt=""><div class="uni">UNIVERSIDAD NACIONAL DE INGENIERIA</div><div class="line"></div><div class="sec"></div><div class="who"></div>';
       h.querySelector(".sec").textContent=s.dataset.sec;
+      h.querySelector(".who").textContent=s.dataset.who||"PREGUNTA 2";
       s.prepend(h);
       var n=document.createElement("div"); n.className="num"; n.textContent=(i+1)+" / "+N; s.appendChild(n);
     } else { var c=s.querySelector(".num"); if(c) c.textContent="1 / "+N; }
@@ -295,7 +348,6 @@ tr.hl td{background:var(--cream);font-weight:700}
   if(R.bono){
     document.getElementById("bono-sar").textContent=fx(R.bono.sar.test_iou.mean,3);
     document.getElementById("bono-fus").textContent=fx(R.bono.fusion.test_iou.mean,3);
-    if(R.bono.txt) document.getElementById("bono-txt").textContent=R.bono.txt;
   }
 })();
 </script>

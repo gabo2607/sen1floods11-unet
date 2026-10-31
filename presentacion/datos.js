@@ -394,7 +394,6 @@ window.R = {
     "mean": 0.792,
     "std": 0.006
    }
-  },
-  "txt": "En los chips sin nubes, sumar 6 bandas \u00f3pticas sube el IoU de test en +0.21, casi sin variaci\u00f3n entre semillas. Pero solo existe sin nubes: se descart\u00f3 el 44 % de los chips."
+  }
  }
 };
