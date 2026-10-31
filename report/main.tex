@@ -3,6 +3,8 @@
 \makeatletter
 \renewcommand{\@noticestring}{Examen Parcial --- Redes Neuronales y Aprendizaje Profundo, UNI FIIS 2026-II.}
 \makeatother
+% El estilo NeurIPS fija el título "Abstract"; mismo formato, en español
+\renewenvironment{abstract}{\vskip 0.075in\centerline{\large\bf Resumen}\vspace{0.5ex}\begin{quote}}{\par\end{quote}\vskip 1ex}
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -26,7 +28,8 @@
 \title{Mapeo de inundaciones con Sentinel-1 y una U-Net:\\ etiquetas doradas vs.\ débiles y generalización a Lima 2017}
 
 \author{%
-  Gabriel Angel Niza Maduque \And \RES{Integrante 2} \And \RES{Integrante 3} \And \RES{Integrante 4} \And \RES{Integrante 5}\\
+  Gabriel Ángel Nizama Duque\qquad César Luis Jiménez Miranda\\
+  \textbf{Juan José Pino Reyes}\qquad \textbf{Martín Alexis Valdiviezo Palma}\\[4pt]
   Maestría en Inteligencia Artificial, Universidad Nacional de Ingeniería (FIIS)\\
   \texttt{https://github.com/gabo2607/sen1floods11-unet}
 }
