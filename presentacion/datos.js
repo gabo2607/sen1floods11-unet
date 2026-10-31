@@ -341,5 +341,60 @@ window.R = {
    "fn_rate": 0.9981556518094173,
    "fp_rate": 0.002450731037289291
   }
+ },
+ "bono": {
+  "sar": {
+   "valid_iou": {
+    "mean": 0.644,
+    "std": 0.015
+   },
+   "test_iou": {
+    "mean": 0.662,
+    "std": 0.002
+   },
+   "test_iou_mean_chip": {
+    "mean": 0.478,
+    "std": 0.012
+   },
+   "test_precision": {
+    "mean": 0.79,
+    "std": 0.017
+   },
+   "test_recall": {
+    "mean": 0.804,
+    "std": 0.021
+   },
+   "bolivia_iou": {
+    "mean": 0.689,
+    "std": 0.001
+   }
+  },
+  "fusion": {
+   "valid_iou": {
+    "mean": 0.846,
+    "std": 0.002
+   },
+   "test_iou": {
+    "mean": 0.87,
+    "std": 0.001
+   },
+   "test_iou_mean_chip": {
+    "mean": 0.702,
+    "std": 0.003
+   },
+   "test_precision": {
+    "mean": 0.933,
+    "std": 0.005
+   },
+   "test_recall": {
+    "mean": 0.928,
+    "std": 0.005
+   },
+   "bolivia_iou": {
+    "mean": 0.792,
+    "std": 0.006
+   }
+  },
+  "txt": "En los chips sin nubes, sumar 6 bandas \u00f3pticas sube el IoU de test en +0.21, casi sin variaci\u00f3n entre semillas. Pero solo existe sin nubes: se descart\u00f3 el 44 % de los chips."
  }
 };

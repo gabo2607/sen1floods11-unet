@@ -84,7 +84,7 @@ Ritmo: unas 130 palabras por minuto. Los tiempos son acumulados.
 
 ---
 
-## Diapositiva 6 · Generalización — 3:35 a 4:35
+## Diapositiva 6 · Generalización — 3:35 a 4:30
 
 > ¿Funciona en regiones nuevas? En **Bolivia**, que la red nunca vio, el IoU se
 > mantiene alrededor de 0.64 a 0.70: no hay una brecha real.
@@ -101,12 +101,16 @@ Ritmo: unas 130 palabras por minuto. Los tiempos son acumulados.
 
 ---
 
-## Diapositiva 7 · Conclusiones — 4:35 a 5:00
+## Diapositiva 7 · Conclusiones y bono — 4:30 a 5:00
 
 > En resumen: la U-Net funciona bien con radar; las etiquetas débiles no
 > ayudaron; y generaliza a otra inundación de llanura, pero no al caso peruano.
 > Para usarla en el Perú hace falta afinar con ejemplos locales y sumar datos de
 > elevación u ópticos.
+>
+> Y como bono: en los chips sin nubes, sumar seis bandas ópticas de Sentinel-2
+> sube el IoU de 0.66 a 0.87. Pero el óptico solo existe sin nubes, justo lo que
+> falta en una tormenta; por eso el radar sigue siendo la base.
 >
 > Todo el código corre con un solo comando y está en GitHub. Gracias.
 
@@ -137,9 +141,12 @@ es igual de válida y más estable entre semillas (±0.005 frente a ±0.020).
 Es una inundación de llanura con agua abierta y calma, el mismo tipo de
 fenómeno que domina el entrenamiento, y sus etiquetas siguen el mismo protocolo.
 
-**¿Hicieron el bono de Sentinel-2?**
-No. Lo dejamos como trabajo futuro: el óptico ayudaría justo donde falla el
-radar, siempre que no haya nubes.
+**¿Cómo hicieron el bono de Sentinel-2?**
+Filtramos los chips sin nubes (142 de 252 en entrenamiento), y sobre esos mismos
+chips entrenamos solo-radar y radar + 6 bandas ópticas, con 3 semillas. El IoU de
+test sube de 0.662 a 0.870. El agua absorbe casi todo el infrarrojo, así que se
+separa muy bien de vegetación, suelo húmedo y ciudad. Ojo: las etiquetas doradas
+se dibujaron con ayuda del óptico, así que parte de la mejora puede venir de ahí.
 
 **¿Qué es una semilla?**
 El número que fija el azar del entrenamiento (inicialización de pesos y orden de

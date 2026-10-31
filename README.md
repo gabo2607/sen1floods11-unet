@@ -51,6 +51,8 @@ Sobre **esos mismos chips** entrena, con 3 semillas, una U-Net **solo SAR** (VV,
 óptico** (VV, VH + B2, B3, B4, B8, B11, B12, 8 canales), y escribe la comparación en `runs/bono.md` y
 `runs/bono.tex`. Lima no entra en el bono porque no se preparó Sentinel-2 para esa escena.
 
+Resultado (test, media de 3 semillas): solo SAR IoU 0.662 ± 0.002 → SAR + Sentinel-2 IoU 0.870 ± 0.001.
+
 ## Estructura
 
 ```

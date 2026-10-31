@@ -48,6 +48,7 @@ modelo alcanza un IoU de 0.655 en el test dorado y 0.701 en Bolivia (evento rete
 Sentinel-1 del 17 de marzo y la delineación Copernicus EMS EMSN038. Atribuimos esa brecha a tres
 causas: el tipo de inundación (lodo turbulento y zonas urbanas, que no se ven oscuros en el SAR), el
 desajuste de fecha y de criterio de la referencia óptica, y la geometría de radar en el relieve andino.
+Como bono, añadir 6 bandas de Sentinel-2 en los chips sin nubes eleva el IoU de test de 0.66 a 0.87.
 \end{abstract}
 
 % ---------------------------------------------------------------------------------------------
@@ -347,7 +348,17 @@ y otra SAR + óptico, con BCE+Dice, el mismo número de pasos y 3 semillas (Tabl
   \IfFileExists{bono.tex}{\resizebox{\linewidth}{!}{\input{bono.tex}}}{\RES{[falta bono.tex]}}
 \end{table}
 
-\RES{[Completar con los resultados del bono.]}
+La fusión eleva el IoU de test de $0.662\pm0.002$ a $0.870\pm0.001$ (+0.21), con precisión y recall por
+encima de 0.92. También mejora el IoU por chip (0.478 a 0.702) y el de Bolivia (0.689 a 0.792), y la
+variación entre semillas casi desaparece. La explicación es física: en el infrarrojo cercano y de onda
+corta (B8, B11, B12) el agua absorbe casi toda la radiación y se separa con nitidez de la vegetación
+inundada, del suelo húmedo y de las zonas urbanas, que son justamente los errores típicos del radar
+(Sección~8). Hay tres advertencias. (i) La ganancia solo existe sin nubes: el filtro descartó el 44\,\% de
+los chips de entrenamiento, y en las horas críticas de una tormenta rara vez hay imagen óptica útil, que es
+la razón de usar SAR. (ii) El subconjunto despejado favorece escenas tomadas cuando el cielo ya se había
+abierto. (iii) Las etiquetas doradas de Sen1Floods11 se trazaron con ayuda de la imagen óptica, así que
+parte de la ganancia puede reflejar que el modelo ve la misma información que el anotador. La conclusión
+práctica es usar el óptico cuando esté disponible y el radar como respaldo siempre disponible.
 
 \section{Discusión y limitaciones}
 
@@ -375,7 +386,8 @@ Una U-Net de 7.8\,M de parámetros entrenada solo con SAR alcanza un IoU de 0.65
 ablación, con 3 semillas, entrenar solo con etiquetas doradas fue claramente mejor que sumar 1000
 etiquetas débiles (unas 0.065 de IoU a favor en validación); la elección de la pérdida, en cambio, no
 produjo diferencias distinguibles del ruido entre semillas, lo que solo se pudo ver gracias a la segunda
-ronda de entrenamientos. El modelo generaliza a otra inundación fluvial y rural (Bolivia, 0.701), pero no al escenario peruano de 2017, cuyas firmas SAR (agua turbulenta, zonas urbanas,
+ronda de entrenamientos. Cuando no hay nubes, sumar Sentinel-2 sube el IoU de 0.66 a 0.87. El modelo
+solo-SAR generaliza a otra inundación fluvial y rural (Bolivia, 0.701), pero no al escenario peruano de 2017, cuyas firmas SAR (agua turbulenta, zonas urbanas,
 relieve andino) no están en el entrenamiento. Para uso operativo en el Perú, la conclusión práctica es
 que se necesitan ejemplos locales, ya sea afinando con unos pocos chips etiquetados de eventos peruanos,
 y fuentes auxiliares (DEM, óptico) antes de confiar en un modelo entrenado en otras regiones.
