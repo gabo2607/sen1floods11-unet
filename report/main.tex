@@ -416,8 +416,10 @@ abierta (agua turbulenta con sedimento, zonas urbanas) y la etiqueta es de otra 
 que se necesitan ejemplos locales, afinando con unos pocos chips etiquetados de eventos peruanos,
 y fuentes auxiliares (DEM, óptico) antes de confiar en un modelo entrenado en otras regiones.
 
-\paragraph{Reproducibilidad.} Todo el pipeline (descarga, ablación, evaluación y figuras) corre con
-\texttt{python run\_all.py}; ver el README del repositorio.
+\paragraph{Reproducibilidad.} El repositorio ofrece dos caminos. \texttt{python reproducir.py}
+descarga el modelo final publicado (Release v1.0) y reproduce en 2--3 minutos los IoU del informe;
+\texttt{python run\_all.py} reentrena todo desde cero (descarga, ablación con 3 semillas, bono,
+evaluación y figuras; unas 2.5\,h en una GPU T4). Ver el README del repositorio.
 
 {\small
 \bibliographystyle{plain}

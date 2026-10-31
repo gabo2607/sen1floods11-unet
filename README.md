@@ -6,6 +6,29 @@ de las bandas SAR **VV y VH** de Sentinel-1.
 
 [![Abrir en Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/gabo2607/sen1floods11-unet/blob/main/notebooks/colab.ipynb)
 
+## Cómo replicar los resultados
+
+**Verificación rápida (2–3 minutos, sirve con CPU):** descarga el modelo final publicado en el
+[Release v1.0](https://github.com/gabo2607/sen1floods11-unet/releases/tag/v1.0), lo evalúa y compara
+cada IoU con el del informe.
+
+```bash
+pip install -r requirements.txt
+python reproducir.py
+```
+
+```
+conjunto    obtenido   informe
+valid          0.631     0.631  OK
+test           0.655     0.655  OK
+bolivia        0.701     0.701  OK
+lima           0.002     0.002  OK
+```
+
+**Replicación completa (≈2.5 h en una GPU T4):** reentrena desde cero los 15 modelos de la ablación y
+los 6 del bono, y regenera tablas y figuras. Es el comando único descrito a continuación (o el notebook
+de Colab).
+
 ## Comando único
 
 ```bash
