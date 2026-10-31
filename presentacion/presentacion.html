@@ -57,7 +57,7 @@ tr.hl td{background:var(--cream);font-weight:700}
 
 .fig{display:block;max-width:100%}
 .kicker{font:700 10px var(--head);letter-spacing:.32em;color:var(--uni)}
-.concl{display:flex;gap:18px;align-items:baseline;margin-bottom:14px}
+.concl{display:flex;gap:18px;align-items:baseline;margin-bottom:10px}
 .concl .n{font:700 19px var(--head);color:var(--uni);width:28px;flex:none}
 .concl .t{font:400 15px/1.38 var(--body)}
 .legend{display:flex;gap:14px;font-size:10.5px;color:var(--ink-2)}
@@ -252,11 +252,16 @@ tr.hl td{background:var(--cream);font-weight:700}
 <section class="slide" data-sec="Conclusiones">
   <div class="body">
     <h2>Conclusiones</h2>
-    <div class="concl"><div class="n">01</div><div class="t">Una U-Net propia, solo con radar, logra un IoU de <b data-m="best.test"></b> en el test dorado; su error típico es la omisión.</div></div>
+    <div class="concl"><div class="n">01</div><div class="t">Una U-Net propia, solo con radar, logra un IoU de <b data-m="best.test"></b> en el test dorado (media de 3 semillas); su error típico es la omisión.</div></div>
     <div class="concl"><div class="n">02</div><div class="t">A igual cómputo, las etiquetas débiles no ayudaron: mezclarlas resta ~0.07 de IoU en las tres semillas. La pérdida, en cambio, casi no importa: BCE y BCE+Dice empatan.</div></div>
     <div class="concl"><div class="n">03</div><div class="t">Generaliza a otra inundación de llanura (Bolivia), pero no a Lima 2017: allí el agua no se ve oscura en el radar y la etiqueta es de otra fecha.</div></div>
     <div class="concl"><div class="n">04</div><div class="t">Para el Perú: afinar con ejemplos locales y sumar elevación (HAND) u óptico antes de confiar en un modelo entrenado en otras regiones.</div></div>
-    <div style="font:700 22px var(--head);color:var(--uni);margin-top:16px">Gracias.</div>
+    <div class="row" id="bono" style="margin-top:4px;align-items:stretch">
+      <div class="card" style="flex:1.6"><h3>Bono · fusión con Sentinel-2 (chips sin nubes)</h3><p id="bono-txt">Mismos 142 chips de entrenamiento, 3 semillas: solo radar frente a radar + 6 bandas ópticas.</p></div>
+      <div class="stat"><div class="v" id="bono-sar">—</div><div class="l">IoU test · solo SAR</div></div>
+      <div class="stat hi"><div class="v" id="bono-fus">—</div><div class="l">IoU test · SAR + óptico</div></div>
+    </div>
+    <div style="font:700 22px var(--head);color:var(--uni);margin-top:12px">Gracias.</div>
     <p class="small" style="margin-top:6px">Código reproducible con un solo comando: <b>github.com/gabo2607/sen1floods11-unet</b></p>
   </div>
 </section>
@@ -287,6 +292,11 @@ tr.hl td{background:var(--cream);font-weight:700}
   document.querySelectorAll("[data-pct]").forEach(function(el){ var v=get(el.dataset.pct); el.textContent=(v==null?"—":(100*v).toFixed(1)+" %"); });
   document.querySelectorAll("[data-i]").forEach(function(el){ if(R[el.dataset.i]!=null) el.textContent=R[el.dataset.i]; });
   var best=document.querySelector('[data-row="'+R.best+'"]'); if(best) best.classList.add("hl");
+  if(R.bono){
+    document.getElementById("bono-sar").textContent=fx(R.bono.sar.test_iou.mean,3);
+    document.getElementById("bono-fus").textContent=fx(R.bono.fusion.test_iou.mean,3);
+    if(R.bono.txt) document.getElementById("bono-txt").textContent=R.bono.txt;
+  }
 })();
 </script>
 </body>

@@ -63,6 +63,7 @@ def main():
     p.add_argument("--runs", default="../sen1floods11-unet/runs")
     p.add_argument("--root", default=str(HERE.parent / "data" / "sen1floods11"))
     p.add_argument("--no-pdf", action="store_true")
+    p.add_argument("--bono-txt", default="", help="frase de conclusión del bono para la diapositiva 7")
     a = p.parse_args()
     runs = Path(a.runs)
 
@@ -89,6 +90,12 @@ def main():
                          "fn_rate": c["fn"] / max(c["tp"] + c["fn"], 1),
                          "fp_rate": c["fp"] / max(c["fp"] + c["tn"], 1)}
     out = {"seeds": seeds, "best": best_key, "best_run": best_run, "exp": data, "single": single}
+    if (runs / "bono.json").exists():
+        b = json.loads((runs / "bono.json").read_text(encoding="utf-8"))
+        out["bono"] = {k: b[k]["stats"] for k in ("sar", "fusion")}
+        out["bono"]["sar"]["test_iou"] = b["sar"]["stats"]["test_iou"]
+    if a.bono_txt:
+        out.setdefault("bono", {})["txt"] = a.bono_txt
     (HERE / "datos.js").write_text("window.R = " + json.dumps(out, indent=1) + ";\n", encoding="utf-8")
     print(f"datos.js: {seeds} semilla(s); mejor experimento {best_key} ({best_run})")
 

@@ -329,6 +329,26 @@ tres tipos de error:
 \end{figure}
 
 % ---------------------------------------------------------------------------------------------
+\section{Bono: fusión SAR + Sentinel-2}
+
+Añadimos 6 bandas ópticas de Sentinel-2 como canales de entrada: B2, B3 y B4 (visible), B8 (infrarrojo
+cercano), y B11 y B12 (infrarrojo de onda corta), en reflectancia escalada a $[0,1]$. Así la U-Net recibe
+8 canales en lugar de 2. Como el enunciado pide usar solo chips libres de nubes, marcamos un píxel como
+nube si es brillante en el azul (B2 $>0.20$) o si lo detecta la banda de cirros (B10 $>0.01$), y conservamos
+los chips con menos del 10\,\% de nubes: 142 de entrenamiento, 50 de validación, 56 de test y 6 de
+Bolivia. Para que la comparación sea justa, entrenamos \emph{sobre esos mismos chips} una U-Net solo SAR
+y otra SAR + óptico, con BCE+Dice, el mismo número de pasos y 3 semillas (Tabla~\ref{tab:bono}).
+
+\begin{table}[h]
+  \caption{Bono: chips sin nubes. Media $\pm$ desviación estándar sobre 3 semillas.}
+  \label{tab:bono}
+  \centering
+  \scriptsize
+  \IfFileExists{bono.tex}{\resizebox{\linewidth}{!}{\input{bono.tex}}}{\RES{[falta bono.tex]}}
+\end{table}
+
+\RES{[Completar con los resultados del bono.]}
+
 \section{Discusión y limitaciones}
 
 \begin{itemize}
@@ -344,8 +364,9 @@ tres tipos de error:
   \item \textbf{Normalización radiométrica.} La conversión $\gamma^0\to\sigma^0$ con incidencia
   interpolada es aproximada. Lo ideal sería procesar la GRD con la misma cadena que Sen1Floods11
   (Google Earth Engine) o usar $\gamma^0$ también en el entrenamiento.
-  \item \textbf{Solo SAR.} No usamos Sentinel-2 (bono opcional) ni un modelo de elevación (HAND), que
-  ayudarían a descartar sombra de radar y zonas altas.
+  \item \textbf{Fuentes auxiliares.} El óptico solo sirve sin nubes, que es justo lo que falta durante
+  una tormenta, y no lo preparamos para Lima. Tampoco usamos un modelo de elevación (HAND), que ayudaría a
+  descartar sombra de radar y zonas altas.
 \end{itemize}
 
 \section{Conclusiones}
