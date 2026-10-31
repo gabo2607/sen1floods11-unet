@@ -217,6 +217,39 @@ def plot_errors(model, best_dir, root, split, out, device, n_panel=6, n_chips=20
         plt.close(fig)
 
 
+def plot_backscatter(root, out, n=200_000, seed=0):
+    """Distribución de σ⁰ (dB) de píxeles de agua y de tierra según la etiqueta, por conjunto."""
+    rng = np.random.default_rng(seed)
+    sets = [("Sen1Floods11 test", "test"), ("Bolivia", "bolivia"), ("Lima (EMSN038)", "lima")]
+    fig, axes = plt.subplots(2, 3, figsize=(9.6, 4.6), sharex="row", sharey="row")
+    for col, (title, split) in enumerate(sets):
+        ds = hand_dataset(root, split)
+        px = {0: [], 1: []}
+        for i in range(len(ds)):
+            img, label = ds[i]
+            img, label = to_db(img.numpy()), label[0].numpy()
+            for k in (0, 1):
+                px[k].append(img[:, label == k])
+        for row, (band, rng_db) in enumerate([("VV", (-30, 5)), ("VH", (-38, -3))]):
+            ax = axes[row, col]
+            bins = np.linspace(*rng_db, 71)
+            for k, (name, c) in enumerate([("tierra", SERIES[1]), ("agua", SERIES[0])]):
+                v = np.concatenate(px[k], axis=1)[row]
+                v = v[v > DB_MIN + 0.5]  # fuera los valores rellenados de sin datos
+                v = rng.choice(v, min(n, v.size), replace=False)
+                h, _ = np.histogram(v, bins=bins, density=True)
+                ax.plot((bins[:-1] + bins[1:]) / 2, h, color=c, lw=2, label=f"{name} (mediana {np.median(v):.1f})")
+            ax.legend(fontsize=7, loc="upper left")
+            ax.set_yticks([])
+            if row == 0:
+                ax.set_title(title)
+            ax.set_xlabel(f"σ⁰ {band} (dB)" if row == 1 else "")
+            if col == 0:
+                ax.set_ylabel(f"{band}\ndensidad")
+    fig.tight_layout()
+    save(fig, out / "backscatter.png")
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--root", default="data/sen1floods11")
@@ -235,6 +268,7 @@ def main():
     for split in ("test", "bolivia", "lima"):
         plot_confusion(ev, split, out)
     plot_events(best_dir, out)
+    plot_backscatter(root, out)
     model = load_model(best_dir / "best.pt", device)
     for split in ("test", "bolivia", "lima"):
         plot_errors(model, best_dir, root, split, out, device)
