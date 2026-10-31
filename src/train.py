@@ -34,6 +34,9 @@ WEAK_CSV = "v1.1/splits/weak_selected.csv"
 
 
 def hand_dataset(root, split, train=False, crop=256):
+    if split == "lima":  # región de prueba propia (src/data/lima.py)
+        lima = root / "lima"
+        return FloodDataset(lima / "flood_lima_data.csv", lima / "S1Hand", lima / "LabelHand")
     return FloodDataset(
         root / SPLITS / f"flood_{split}_data.csv",
         root / HAND / "S1Hand",

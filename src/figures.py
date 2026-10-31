@@ -102,16 +102,17 @@ def read_perchip(path):
 
 def plot_events(best_dir, out):
     stats = {}
-    for split in ("test", "bolivia"):
+    special = {"bolivia": "Bolivia (retenido)", "lima": "Lima (EMSN038)"}
+    for split in ("test", "bolivia", "lima"):
         for r in read_perchip(best_dir / f"perchip_{split}.csv"):
-            key = "Bolivia (retenido)" if split == "bolivia" else r["event"]
+            key = special.get(split, r["event"])
             s = stats.setdefault(key, [0, 0, 0, 0])
             s[0] += r["tp"]; s[1] += r["fp"]; s[2] += r["fn"]; s[3] += 1
     items = sorted(((k, s[0] / max(s[0] + s[1] + s[2], 1), s[3]) for k, s in stats.items()),
                    key=lambda t: t[1])
     fig, ax = plt.subplots(figsize=(5.6, 0.32 * len(items) + 0.8))
     names, ious, ns = zip(*items)
-    colors = [SERIES[1] if "Bolivia" in n else SERIES[0] for n in names]
+    colors = [SERIES[1] if ("Bolivia" in n or "Lima" in n) else SERIES[0] for n in names]
     ax.barh(range(len(items)), ious, color=colors, height=0.7)
     for i, (v, n) in enumerate(zip(ious, ns)):
         ax.text(v + 0.01, i, f"{v:.2f}  (n={n})", va="center", fontsize=8, color=INK2)
@@ -119,7 +120,7 @@ def plot_events(best_dir, out):
     ax.set_xlim(0, 1.12)
     ax.set_xlabel("IoU agua (global por evento)")
     ax.grid(axis="y", visible=False)
-    ax.set_title("IoU por evento — test (azul) y Bolivia (naranja)")
+    ax.set_title("IoU por evento — test (azul) y regiones nunca vistas (naranja)")
     save(fig, out / "events.png")
 
 
@@ -217,11 +218,11 @@ def main():
     print(f"Figuras (mejor modelo: {summary['best']})")
     plot_curves(summary, runs, out)
     ev = json.loads((best_dir / "eval.json").read_text())
-    for split in ("test", "bolivia"):
+    for split in ("test", "bolivia", "lima"):
         plot_confusion(ev, split, out)
     plot_events(best_dir, out)
     model = load_model(best_dir / "best.pt", device)
-    for split in ("test", "bolivia"):
+    for split in ("test", "bolivia", "lima"):
         plot_errors(model, best_dir, root, split, out, device)
 
 

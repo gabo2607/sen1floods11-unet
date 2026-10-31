@@ -8,8 +8,9 @@
      mixed  dorados + débiles mezclados
      pre-ft preentrenar con débiles (E/2 épocas) y afinar con dorados (E/2 épocas)
 3. Ablación (b), con la mejor estrategia de (a) según IoU de validación: BCE sola y Dice sola.
-4. Evalúa todo en valid / test / Bolivia y escribe runs/summary.json, results.md y ablation.tex.
-5. Genera las figuras del informe (src/figures.py).
+4. Construye la región de prueba de Lima (S1 17-mar-2017 + EMSN038, src/data/lima.py).
+5. Evalúa todo en valid / test / Bolivia / Lima y escribe runs/summary.json, results.md y ablation.tex.
+6. Genera las figuras del informe (src/figures.py).
 
 Es reanudable: un entrenamiento con archivo DONE no se repite.
 Prueba rápida de humo: python run_all.py --quick
@@ -22,6 +23,7 @@ from pathlib import Path
 
 LABELS = {"gold": "Solo dorados", "mixed": "Dorados + débiles", "preft": "Pre. débiles → afin. dorados"}
 LOSSES = {"bce_dice": "BCE+Dice", "bce": "BCE", "dice": "Dice"}
+SPLITS = ["valid", "test", "bolivia", "lima"]
 
 
 def run(*cmd):
@@ -62,23 +64,27 @@ def write_tables(exps, a):
     for e in exps:
         ev = json.loads((runs / e["name"] / "eval.json").read_text())
         e["eval"] = {s: {k: v for k, v in ev[s].items()} for s in ev}
-        t, b = ev["test"], ev["bolivia"]
+        t, b, l = ev["test"], ev["bolivia"], ev["lima"]
         rows.append((e["label"], ev["valid"]["iou"], t["iou"], t["iou_mean_chip"], t["f1"],
-                     t["precision"], t["recall"], b["iou"], b["iou_mean_chip"], b["f1"]))
+                     t["precision"], t["recall"], b["iou"], b["iou_mean_chip"], b["f1"],
+                     l["iou"], l["f1"], l["precision"], l["recall"]))
 
     head = ["Experimento", "IoU val", "IoU test", "IoU/chip test", "F1 test", "P test", "R test",
-            "IoU Bolivia", "IoU/chip Bolivia", "F1 Bolivia"]
+            "IoU Bolivia", "IoU/chip Bolivia", "F1 Bolivia", "IoU Lima", "F1 Lima", "P Lima", "R Lima"]
     md = ["| " + " | ".join(head) + " |", "|" + "---|" * len(head)]
     md += ["| " + " | ".join([r[0]] + [f"{v:.3f}" for v in r[1:]]) + " |" for r in rows]
     (runs / "results.md").write_text("\n".join(md) + "\n", encoding="utf-8")
 
-    tex = [r"\begin{tabular}{lccccc|ccc}", r"\toprule",
-           r"Experimento & IoU$_{val}$ & IoU & IoU$_{chip}$ & F1 & P / R & IoU & IoU$_{chip}$ & F1 \\",
-           r" & & \multicolumn{4}{c|}{Test (en distribución)} & \multicolumn{3}{c}{Bolivia (fuera)} \\",
+    eol = " \\\\"
+    tex = [r"\begin{tabular}{lccccc|cc|cc}", r"\toprule",
+           r" & & \multicolumn{4}{c|}{Test (en distribución)} & \multicolumn{2}{c|}{Bolivia}"
+           r" & \multicolumn{2}{c}{Lima}" + eol,
+           r"Experimento & IoU$_{val}$ & IoU & IoU$_{chip}$ & F1 & P / R & IoU & F1 & IoU & P / R" + eol,
            r"\midrule"]
     for r in rows:
-        tex.append(f"{r[0].replace('→', '$\\to$')} & {r[1]:.3f} & {r[2]:.3f} & {r[3]:.3f} & {r[4]:.3f} & "
-                   f"{r[5]:.2f} / {r[6]:.2f} & {r[7]:.3f} & {r[8]:.3f} & {r[9]:.3f} \\\\")
+        name = r[0].replace("→", r"$\to$")
+        tex.append(f"{name} & {r[1]:.3f} & {r[2]:.3f} & {r[3]:.3f} & {r[4]:.3f} & {r[5]:.2f} / {r[6]:.2f} & "
+                   f"{r[7]:.3f} & {r[9]:.3f} & {r[10]:.3f} & {r[12]:.2f} / {r[13]:.2f}" + eol)
     tex += [r"\bottomrule", r"\end{tabular}"]
     (runs / "ablation.tex").write_text("\n".join(tex) + "\n", encoding="utf-8")
     print("\n" + "\n".join(md))
@@ -102,6 +108,8 @@ def main():
 
     if not a.skip_download:
         run("-m", "src.data.download", "--root", a.root, "--weak-limit", a.weak)
+    if not (Path(a.root) / "lima" / "flood_lima_data.csv").exists():
+        run("-m", "src.data.lima", "--root", a.root)
 
     # (a) estrategia de datos
     exps = [train_experiment(s, "bce_dice", a) for s in ("gold", "mixed", "preft")]
@@ -111,8 +119,12 @@ def main():
     exps += [train_experiment(best_strategy, loss, a) for loss in ("bce", "dice")]
 
     for e in exps:
-        if not (Path(a.runs_dir) / e["name"] / "eval.json").exists():
-            run("-m", "src.evaluate", "--name", e["name"], "--root", a.root, "--runs-dir", a.runs_dir)
+        ev_path = Path(a.runs_dir) / e["name"] / "eval.json"
+        done = json.loads(ev_path.read_text()) if ev_path.exists() else {}
+        missing = [s for s in SPLITS if s not in done]
+        if missing:
+            run("-m", "src.evaluate", "--name", e["name"], "--root", a.root, "--runs-dir", a.runs_dir,
+                "--splits", *missing)
     write_tables(exps, a)
 
     best = max(exps, key=lambda e: e["val_iou"])["name"]  # selección SOLO por validación

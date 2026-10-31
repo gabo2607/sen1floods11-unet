@@ -24,7 +24,7 @@ python run_all.py
    afinar con dorados).
 3. **Ablación (b): función de pérdida** — con la mejor estrategia de (a) se entrena con BCE sola y
    Dice sola.
-4. **Evaluación** de los 5 modelos en validación, test (en distribución) y Bolivia (fuera de
+4. **Evaluación** de los 5 modelos en validación, test (en distribución), Bolivia y **Lima** (fuera de
    distribución): IoU global, IoU promedio por chip (métrica de los autores), F1, precisión, recall,
    omisión, comisión y matriz de confusión.
 5. **Figuras** para el informe: curvas, matrices de confusión, IoU por evento y paneles de errores.
@@ -55,27 +55,32 @@ notebooks/colab.ipynb   ejecución en Colab
 Salidas en `runs/`: un directorio por experimento (`best.pt`, `history.json`, `eval.json`,
 `perchip_*.csv`), más `results.md`, `ablation.tex`, `summary.json` y `figures/`.
 
-## Generalización geográfica: Bolivia en lugar de Lima
+## Generalización geográfica: Lima (marzo de 2017) y Bolivia
 
-El enunciado propone construir una región de prueba en Lima con Sentinel-1 de marzo de 2017 y la
-delineación EMSN038 de Copernicus EMS, y permite usar Bolivia como respaldo justificado. Usamos
-**Bolivia** (los 15 chips dorados de la partición oficial, evento nunca visto en entrenamiento, ni
-siquiera entre los débiles) porque:
+**Región de prueba propia para el Perú** (`src/data/lima.py`), construida con dos fuentes independientes:
 
-- **Plazo**: construir la región de Lima exige ubicar y preprocesar una escena Sentinel-1 GRD
-  (calibración a σ⁰ en dB, corrección de terreno, remuestreo a 10 m y recorte en chips de 512×512)
-  y rasterizar los polígonos de EMSN038 sobre esa grilla; no fue posible completarlo y verificarlo
-  dentro del plazo del proyecto.
-- **Calidad de la etiqueta**: EMSN038 se delineó con imagen óptica WorldView-2 de muy alta
-  resolución del 18 y 21 de marzo de 2017; cualquier desfase con la pasada SAR (en ríos encañonados
-  como el Rímac y el Chillón el agua retrocede rápido) y la diferencia de criterio frente a las
-  etiquetas doradas harían que la brecha medida mezcle error del modelo con error de la etiqueta.
-- **Tipo de cobertura**: las zonas afectadas son urbanas y periurbanas, con lodo y huaicos más que
-  lámina de agua abierta, donde el doble rebote y la sombra de radar dominan la señal.
+- **Imagen SAR**: Sentinel-1B IW GRDH dual-pol (VV+VH) del **17 de marzo de 2017**, órbita
+  descendente (`S1B_IW_GRDH_1SDV_20170317T103823_…`), una de las escenas que lista el propio informe
+  de EMSN038. Se obtiene sin cuenta del catálogo RTC de Microsoft Planetary Computer.
+- **Etiquetas**: activación **Copernicus EMS EMSN038**, capa *Potential Maximum Flood Extent*
+  (delineada sobre WorldView-2 del 18 y 21 de marzo). Del geodatabase oficial
+  (`EMSN038_Geodatabase.zip`, 2.2 GB) se exportaron a `lima/emsn038_layers.geojson` solo las capas
+  necesarias: inundación, cauces, lagunas, mar y AOI.
 
-Bolivia, en cambio, tiene etiquetas doradas hechas con el mismo protocolo que el entrenamiento, por
-lo que la brecha frente a test refleja solo el cambio de región. Estos puntos se discuten como
-hipótesis y limitaciones en el informe.
+Preprocesamiento para igualar el formato de Sen1Floods11: reproyección a EPSG:4326 con 8.98e-5°
+(≈10 m), conversión γ⁰ (RTC) → σ⁰ ≈ γ⁰·cos θ con θ interpolado a lo ancho del barrido IW, paso a dB
+y corte en chips de 512×512. Etiqueta: 1 = inundación ∪ cauces ∪ lagunas; −1 = mar, fuera del AOI o
+sin datos; 0 = resto. Se conservan los **19 chips** con al menos 500 píxeles de inundación.
+
+**Limitaciones de esta referencia** (también las reconoce el informe oficial de EMSN038): la
+delineación es óptica y del 21 de marzo, con el agua ya en retroceso; el agua cargada de sedimentos es
+difícil de separar del suelo desnudo, y en el 25 % del AOI no se pudo delinear la inundación. Por eso
+la tomamos como supervisión débil, no como *ground truth*.
+
+**Bolivia** (los 15 chips dorados de la partición oficial, excluidos también de los chips débiles) se
+reporta como segunda región nunca vista, etiquetada con el mismo protocolo que el entrenamiento. Así
+se puede separar la parte de la brecha que se debe al cambio de región de la que se debe a la
+diferencia de etiqueta.
 
 ## Requisitos
 

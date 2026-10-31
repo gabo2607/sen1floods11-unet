@@ -56,7 +56,7 @@ def main():
     p.add_argument("--name", required=True)
     p.add_argument("--root", default="data/sen1floods11")
     p.add_argument("--runs-dir", default="runs")
-    p.add_argument("--splits", nargs="+", default=["valid", "test", "bolivia"])
+    p.add_argument("--splits", nargs="+", default=["valid", "test", "bolivia", "lima"])
     p.add_argument("--workers", type=int, default=0)
     args = p.parse_args()
 
@@ -64,7 +64,7 @@ def main():
     out = Path(args.runs_dir) / args.name
     model = load_model(out / "best.pt", device)
 
-    results = {}
+    results = json.loads((out / "eval.json").read_text()) if (out / "eval.json").exists() else {}
     for split in args.splits:
         r, rows = evaluate_split(model, hand_dataset(Path(args.root), split), device, workers=args.workers)
         results[split] = r
