@@ -12,3 +12,7 @@ report/*.out
 report/*.fls
 report/*.fdb_latexmk
 report/*.synctex.gz
+report/*.bbl
+report/*.blg
+report/build.log
+report/main.pdf

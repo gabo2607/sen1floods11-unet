@@ -1,0 +1,322 @@
+\documentclass{article}
+\usepackage[preprint]{neurips_2025}
+\makeatletter
+\renewcommand{\@noticestring}{Examen Parcial --- Redes Neuronales y Aprendizaje Profundo, UNI FIIS 2026-II.}
+\makeatother
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-noshorthands,es-tabla]{babel}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts,amsmath}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{subcaption}
+
+% Marca los valores que dependen de los resultados finales de Colab
+\newcommand{\RES}[1]{\textcolor{red}{#1}}
+% Figura que no rompe la compilación si aún no existe el archivo
+\newcommand{\fig}[2]{\IfFileExists{../runs/figures/#1}{\includegraphics[width=#2]{#1}}{\fbox{\parbox{#2}{\centering\small\RES{[falta \detokenize{#1}]}}}}}
+\graphicspath{{../runs/figures/}}
+
+\title{Mapeo de inundaciones con Sentinel-1 y una U-Net:\\ etiquetas doradas vs.\ débiles y generalización a Lima 2017}
+
+\author{%
+  Gabriel Angel Niza Maduque \And \RES{Integrante 2} \And \RES{Integrante 3} \And \RES{Integrante 4} \And \RES{Integrante 5}\\
+  Maestría en Inteligencia Artificial, Universidad Nacional de Ingeniería (FIIS)\\
+  \texttt{https://github.com/gabo2607/sen1floods11-unet}
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+El radar de apertura sintética (SAR) de Sentinel-1 atraviesa nubes y opera de noche, por lo que es la
+fuente de facto para mapear inundaciones durante la emergencia. Implementamos desde cero en PyTorch una
+U-Net que segmenta agua a partir de las bandas VV y VH, y la entrenamos en Sen1Floods11. Mediante una
+ablación a igual cómputo comparamos tres formas de combinar los 252 chips etiquetados a mano con 1000
+chips de etiqueta débil (umbral de Otsu), y tres funciones de pérdida (BCE, Dice y BCE+Dice). El mejor
+modelo alcanza un IoU de \RES{0.xx} en el test dorado, \RES{0.xx} en Bolivia (evento retenido) y apenas
+\RES{0.xx} en una región de prueba propia construida para Lima (marzo de 2017) a partir de una escena
+Sentinel-1 del 17 de marzo y la delineación Copernicus EMS EMSN038. Atribuimos esa brecha a tres
+causas: el tipo de inundación (lodo turbulento y zonas urbanas, que no se ven oscuros en el SAR), el
+desajuste de fecha y de criterio de la referencia óptica, y la geometría de radar en el relieve andino.
+\end{abstract}
+
+% ---------------------------------------------------------------------------------------------
+\section{Motivación}
+
+Saber \emph{dónde} está el agua en las horas siguientes a una inundación es crítico para la respuesta
+de emergencia, pero las nubes que acompañan a las tormentas inutilizan a los satélites ópticos justo
+cuando más se los necesita. El SAR en banda C de Sentinel-1~\cite{torres2012gmes} es insensible a las
+nubes y adquiere de día y de noche; el agua abierta y calma se comporta como un espejo que refleja la
+señal lejos del sensor y aparece oscura, lo que hace de la segmentación de agua un problema bien
+planteado para redes convolucionales. El Perú tiene un precedente concreto: durante El Niño costero de
+marzo de 2017 los desbordes del Rímac y del Chillón afectaron Carapongo, Huachipa, Comas, Puente Piedra
+y otros distritos de Lima, y Copernicus EMS activó el mapeo EMSN038~\cite{cems2017emsn038}.
+
+El reto no es solo arquitectónico. Las etiquetas hechas a mano son escasas (446 chips en
+Sen1Floods11~\cite{bonafilia2020sen1floods11}), mientras que las etiquetas débiles generadas por
+umbralización son abundantes pero ruidosas. Además, un modelo útil en el Perú debe generalizar a una
+región que no vio en el entrenamiento. Este trabajo responde empíricamente a dos preguntas: (i) cómo
+combinar la supervisión dorada y la débil, y (ii) cuánto rendimiento se pierde al llevar el modelo a
+Lima.
+
+% ---------------------------------------------------------------------------------------------
+\section{Trabajos relacionados}
+
+\paragraph{Umbralización clásica.} El enfoque operativo dominante umbraliza la retrodispersión,
+típicamente con Otsu~\cite{otsu1979} aplicado sobre teselas bimodales, seguido de refinamiento por
+crecimiento de regiones y modelos de elevación~\cite{martinis2015fully,twele2016sentinel}. Es rápido y no
+requiere datos etiquetados, pero falla cuando la superficie del agua es rugosa (viento, corriente) o
+cuando hay otras superficies oscuras (sombra de radar, asfalto, arena seca).
+
+\paragraph{Aprendizaje profundo.} La U-Net~\cite{ronneberger2015unet} y sus variantes, como
+Attention U-Net~\cite{oktay2018attention}, son el estándar para segmentación densa. Sen1Floods11
+introdujo chips dorados y débiles de 11 eventos y mostró que redes entrenadas con etiquetas débiles
+pueden superar al umbral que las generó~\cite{bonafilia2020sen1floods11}.
+Konapala et al.~\cite{konapala2021exploring} estudiaron la fusión de Sentinel-1 y Sentinel-2 sobre el
+mismo conjunto, y WorldFloods~\cite{mateo2021towards} mostró la escala alcanzable con etiquetas
+derivadas de productos de emergencia. La pérdida Dice~\cite{milletari2016vnet} se usa con frecuencia
+para contrarrestar el desbalance entre agua y tierra.
+
+\paragraph{Etiquetas ruidosas e inundación urbana.} El aprendizaje con etiquetas ruidosas está
+revisado en~\cite{frenay2014classification}; las estrategias más simples son mezclar fuentes o
+preentrenar con datos ruidosos y afinar con limpios, que son las que evaluamos. En zonas urbanas, el
+agua entre edificios \emph{aumenta} la retrodispersión por doble rebote en lugar de reducirla, lo que
+invierte la firma del agua~\cite{mason2010urban}. Por último, la normalización radiométrica del SAR
+($\sigma^0$ frente a $\gamma^0$ aplanado por terreno~\cite{small2011flattening}) cambia los niveles de
+dB, sobre todo en relieve.
+
+% ---------------------------------------------------------------------------------------------
+\section{Datos}
+
+\paragraph{Sen1Floods11.} Chips de $512\times512$ píxeles a 10\,m con $\sigma^0$ de VV y VH en dB
+(EPSG:4326). Usamos las particiones oficiales de los chips dorados: 252 de entrenamiento, 89 de
+validación, 90 de test (mismos eventos que el entrenamiento) y 15 de Bolivia (evento retenido). Las
+etiquetas son agua, no agua y sin datos; los píxeles sin datos se ignoran en la pérdida y en las
+métricas. Los valores de dB se recortan a $[-50, 1]$ y se escalan a $[0, 1]$.
+
+\paragraph{Etiquetas débiles.} De los 4\,384 chips con etiqueta Otsu sobre S1 elegimos al azar, con
+semilla fija, 1000 chips, \textbf{excluyendo todo Bolivia y cualquier ubicación presente en validación o
+test} para evitar fuga de información hacia la evaluación.
+
+\paragraph{Región de prueba propia: Lima, marzo de 2017.} Sen1Floods11 no incluye eventos peruanos,
+así que construimos la región combinando dos fuentes independientes:
+\begin{itemize}
+  \item \textbf{SAR}: escena Sentinel-1B IW GRDH dual-pol del \textbf{17 de marzo de 2017}, órbita
+  descendente. Es la escena VV+VH más cercana a la delineación y figura entre las que lista el propio
+  informe de EMSN038. La obtuvimos del catálogo RTC de Microsoft Planetary Computer, que entrega
+  $\gamma^0$ aplanado por terreno; la convertimos a $\sigma^0 \approx \gamma^0\cos\theta$, con el
+  ángulo de incidencia $\theta$ interpolado linealmente a lo ancho del barrido IW (29.1°--46.0°), y la
+  reproyectamos a la grilla de Sen1Floods11.
+  \item \textbf{Referencia}: capa \emph{Potential Maximum Flood Extent} de EMSN038, delineada sobre
+  WorldView-2 del 18 y 21 de marzo~\cite{cems2017emsn038}, rasterizada sobre la misma grilla. Como en
+  Sen1Floods11 también se marca el agua permanente, la clase agua es la unión de la inundación, los cauces
+  y las lagunas; el mar, lo que queda fuera del AOI y los píxeles sin datos se ignoran.
+\end{itemize}
+Conservamos los \textbf{19 chips} con al menos 500 píxeles de inundación, unos 1.9\,km² de agua de
+referencia. Esta referencia es en sí misma una \emph{supervisión débil}. El propio informe de EMSN038
+reconoce que el agua ya estaba en retroceso el 21 de marzo, que por la carga de sedimentos el agua es
+``extremadamente difícil'' de separar del suelo desnudo, y que en el 25\,\% del AOI no se pudo delinear
+la inundación. Las cifras de Lima deben leerse con esa cautela.
+
+% ---------------------------------------------------------------------------------------------
+\section{Metodología}
+
+\paragraph{Arquitectura.} U-Net implementada a mano (\texttt{src/models/unet.py}): bloque de entrada y
+4 niveles de codificador, cada uno con dos convoluciones $3\times3$ + BatchNorm + ReLU; submuestreo por
+\emph{max-pooling}; decodificador con convolución transpuesta $2\times2$, concatenación con la conexión
+de salto del mismo nivel y doble convolución; y una convolución $1\times1$ final que produce un logit
+por píxel. Con 32 canales base (32--512) tiene 7.8\,M de parámetros. La entrada son 2 canales (VV, VH).
+
+\paragraph{Pérdidas.} BCE sobre logits, Dice suave~\cite{milletari2016vnet} calculada por imagen y
+promediada en el lote, y su combinación $\tfrac12(\text{BCE}+\text{Dice})$, todas con máscara de
+píxeles válidos.
+
+\paragraph{Entrenamiento.} AdamW~\cite{loshchilov2019adamw} (lr $10^{-3}$, decaimiento $10^{-4}$) con
+\emph{cosine annealing}, precisión mixta, lotes de 8 recortes aleatorios de $256\times256$ con volteos
+horizontales y verticales, y 40 épocas de 31 pasos. \textbf{Todas las variantes usan el mismo número de
+pasos de optimización}, de modo que comparan estrategias de datos y no cantidad de cómputo. La
+validación se hace sobre chips completos de $512\times512$, y el punto de control se elige
+\emph{exclusivamente} por IoU de validación; test, Bolivia y Lima nunca intervienen en una decisión.
+
+\paragraph{Métricas.} Para la clase agua: IoU global (agregando TP/FP/FN de todos los píxeles), IoU
+promediado por chip (métrica de los autores de Sen1Floods11), F1, precisión, recall, omisión
+($1-$recall), comisión ($1-$precisión) y matriz de confusión, con umbral 0.5.
+
+% ---------------------------------------------------------------------------------------------
+\section{Experimentos}
+
+\paragraph{Ablación (a): combinación de supervisiones} (todas con BCE+Dice):
+\textbf{gold}, solo los 252 chips dorados;
+\textbf{mixed}, dorados y débiles mezclados uniformemente (1252 chips);
+\textbf{pre\,$\to$\,ft}, 20 épocas solo con débiles y 20 épocas de afinado con dorados (lr $3\cdot10^{-4}$).
+
+\paragraph{Ablación (b): función de pérdida.} Con la mejor estrategia de (a), elegida por validación,
+se entrena con BCE sola y con Dice sola.
+
+% ---------------------------------------------------------------------------------------------
+\section{Resultados}
+
+\begin{table}[t]
+  \caption{Ablación. IoU, F1, precisión (P) y recall (R) de la clase agua. Test: chips dorados de los
+  eventos vistos; Bolivia: evento retenido con etiquetas doradas; Lima: región propia (S1 17-mar-2017
+  + EMSN038). La selección se hace solo por IoU$_{val}$.}
+  \label{tab:ablation}
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{3.5pt}
+  \IfFileExists{../runs/ablation.tex}{\input{../runs/ablation.tex}}{\RES{[falta runs/ablation.tex]}}
+\end{table}
+
+\paragraph{Ablación (a).} \RES{[Completar: cuál estrategia gana y por cuánto. Si gold gana: con
+igual cómputo, el ruido de Otsu (sobre todo en sombras y suelos oscuros) cuesta más de lo que aporta la
+diversidad extra. Si mixed o pre$\to$ft gana: la diversidad de escenas compensa el ruido, y afinar con
+dorados corrige el sesgo del umbral.]}
+
+\paragraph{Ablación (b).} \RES{[Completar: BCE sola tiende a mayor precisión y menor recall en clases
+minoritarias; Dice sola optimiza directamente el solapamiento y sube el recall, pero puede ser
+inestable en chips casi sin agua; la combinación suele equilibrar ambas.]}
+
+\begin{figure}[t]
+  \centering
+  \fig{curves.png}{0.62\linewidth}
+  \caption{IoU de validación por época. La línea punteada marca el paso de preentrenamiento a afinado.}
+  \label{fig:curves}
+\end{figure}
+
+\paragraph{Evaluación en distribución.} El mejor modelo (\RES{nombre}) obtiene en test un IoU de
+\RES{0.xx}, F1 \RES{0.xx}, precisión \RES{0.xx} y recall \RES{0.xx}. La matriz de confusión
+(Fig.~\ref{fig:confusion}) muestra que el error dominante es la \textbf{omisión}: \RES{24\,\%} de los
+píxeles de agua se pierden, frente a \RES{2.4\,\%} de falsos positivos sobre tierra. Como la tierra es
+unas 7 veces más abundante, esos pocos falsos positivos aún pesan en la precisión. El IoU promediado por
+chip (\RES{0.xx}) es bastante menor que el global, porque los chips con muy poca agua, donde cualquier
+error domina el cociente, pesan igual que los chips mayormente inundados. Por evento
+(Fig.~\ref{fig:events}), el rendimiento va de \RES{0.87} en Sri Lanka a \RES{0.18} en Pakistán, donde
+las inundaciones son someras y con vegetación que asoma sobre el agua.
+
+\begin{figure}[t]
+  \centering
+  \begin{subfigure}{0.32\linewidth}\fig{confusion_test.png}{\linewidth}\caption{Test}\end{subfigure}
+  \begin{subfigure}{0.32\linewidth}\fig{confusion_bolivia.png}{\linewidth}\caption{Bolivia}\end{subfigure}
+  \begin{subfigure}{0.32\linewidth}\fig{confusion_lima.png}{\linewidth}\caption{Lima}\end{subfigure}
+  \caption{Matrices de confusión del mejor modelo, normalizadas por fila (etiqueta).}
+  \label{fig:confusion}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \fig{events.png}{0.62\linewidth}
+  \caption{IoU global por evento (test) y en las dos regiones nunca vistas.}
+  \label{fig:events}
+\end{figure}
+
+% ---------------------------------------------------------------------------------------------
+\section{Generalización geográfica: Bolivia y Lima}
+
+Frente al test en distribución (IoU \RES{0.xx}), el modelo pierde \RES{x} puntos en Bolivia
+(\RES{0.xx}) y colapsa en Lima (\RES{0.xx}; precisión \RES{0.xx}, recall \RES{0.xx}). Bolivia tiene
+etiquetas hechas con el mismo protocolo que el entrenamiento, así que su brecha moderada mide solo el
+cambio de región, y se explica sobre todo por omisión (recall \RES{0.66}). La caída en Lima es de otra
+magnitud, y la atribuimos a las siguientes hipótesis:
+
+\begin{enumerate}
+  \item \textbf{Tipo de inundación y cobertura urbana.} En Lima no hubo una lámina de agua calma, sino
+  huaicos y desbordes de agua turbulenta con mucho sedimento en cauces encañonados y zonas urbanas. El
+  agua rugosa devuelve energía al sensor y no se ve oscura, y en la zona urbana inundada (Huachipa,
+  Carapongo) el doble rebote entre la fachada y el agua \emph{aumenta} la
+  retrodispersión~\cite{mason2010urban}. Ninguna de esas firmas aparece en los eventos de entrenamiento,
+  que son mayormente rurales y llanos.
+  \item \textbf{Desajuste de la referencia.} La SAR es del 17 de marzo y la delineación óptica del 18 y
+  21, con el agua ya en retroceso. Además, la capa \emph{Potential Maximum Flood Extent} delinea la
+  extensión \emph{máxima} afectada, incluidas zonas con lodo y huellas de la crecida, no solo el agua
+  visible en un instante. Parte de la ``omisión'' es, en realidad, desacuerdo de criterio.
+  \item \textbf{Geometría y normalización del radar.} El relieve de las quebradas produce sombra de
+  radar e inversión por relieve (\emph{layover}) que el modelo nunca vio con esta intensidad, y nuestra
+  conversión aproximada de $\gamma^0$ a $\sigma^0$~\cite{small2011flattening} puede dejar un sesgo de
+  1--2\,dB respecto de los datos de entrenamiento.
+  \item \textbf{Escala.} El agua de referencia ocupa en promedio \RES{~2\,\%} de cada chip y se reparte
+  en franjas de pocas decenas de metros, al límite de la resolución de 10\,m, donde los bordes pesan
+  mucho en el IoU.
+\end{enumerate}
+
+% ---------------------------------------------------------------------------------------------
+\section{Análisis cualitativo de errores característicos del SAR}
+
+La Fig.~\ref{fig:errors} muestra los chips con más píxeles mal clasificados. Identificamos al menos
+tres tipos de error:
+
+\begin{enumerate}
+  \item \textbf{Vegetación inundada y agua somera (omisión).} En Pakistán e India, campos anegados con
+  vegetación que asoma producen dispersión de volumen y doble rebote tallo--agua, y el píxel no se ve
+  oscuro. El modelo omite grandes áreas (IoU \RES{0.17} y \RES{0.28} en los peores chips).
+  \item \textbf{Suelo húmedo, arena y superficies lisas (comisión).} Parcelas recién aradas o
+  inundadas antes del evento, bancos de arena y suelos saturados son especularmente lisos y se ven tan
+  oscuros como el agua. El modelo los marca como agua, como en el chip \RES{Pakistan\_70625}, donde la
+  etiqueta solo contiene un canal estrecho.
+  \item \textbf{Zonas urbanas: doble rebote.} En el chip urbano de España y en Huachipa (Lima), los
+  edificios generan retornos muy brillantes que interrumpen la máscara de agua y fragmentan la
+  predicción en el tejido urbano.
+  \item \textbf{Sombra de radar en relieve (comisión, Lima).} En las laderas opuestas al sensor no
+  llega señal, y quedan franjas oscuras que el modelo confunde con agua (Fig.~\ref{fig:errors-lima}).
+\end{enumerate}
+
+\begin{figure}[t]
+  \centering
+  \fig{errors_test.png}{0.92\linewidth}
+  \caption{Los chips de test con más errores. Columnas: VV, VH (dB), etiqueta dorada, predicción y
+  mapa de errores (gris: acierto; naranja: falso positivo; azul: falso negativo).}
+  \label{fig:errors}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \fig{errors_lima.png}{0.92\linewidth}
+  \caption{Chips de Lima con más errores, con la referencia EMSN038 como etiqueta.}
+  \label{fig:errors-lima}
+\end{figure}
+
+% ---------------------------------------------------------------------------------------------
+\section{Discusión y limitaciones}
+
+\begin{itemize}
+  \item \textbf{Presupuesto de cómputo.} Cada variante se entrenó una sola vez (semilla 0) y por 40
+  épocas cortas. Diferencias de unas pocas centésimas de IoU entre variantes pueden estar dentro de la
+  varianza entre semillas.
+  \item \textbf{Subconjunto de etiquetas débiles.} Usamos 1000 de los 4\,384 chips débiles de S1 y no
+  probamos los derivados de Sentinel-2. Con más datos débiles, o con ponderación por confianza, la
+  conclusión de la ablación (a) podría cambiar.
+  \item \textbf{Referencia de Lima.} Es óptica, de otra fecha y con otro criterio (extensión máxima),
+  así que la brecha de Lima mezcla el error del modelo con el error de la etiqueta. Lo reportamos como
+  un límite superior de la caída real.
+  \item \textbf{Normalización radiométrica.} La conversión $\gamma^0\to\sigma^0$ con incidencia
+  interpolada es aproximada. Lo ideal sería procesar la GRD con la misma cadena que Sen1Floods11
+  (Google Earth Engine) o usar $\gamma^0$ también en el entrenamiento.
+  \item \textbf{Solo SAR.} No usamos Sentinel-2 (bono opcional) ni un modelo de elevación (HAND), que
+  ayudarían a descartar sombra de radar y zonas altas.
+\end{itemize}
+
+\section{Conclusiones}
+
+Una U-Net de 7.8\,M de parámetros entrenada solo con SAR alcanza un IoU de \RES{0.xx} en distribución.
+En la ablación, \RES{[estrategia]} fue la mejor forma de usar las etiquetas débiles, y \RES{[pérdida]}
+la mejor pérdida. El modelo generaliza razonablemente a otra inundación fluvial y rural (Bolivia,
+\RES{0.xx}), pero no al escenario peruano de 2017, cuyas firmas SAR (agua turbulenta, zonas urbanas,
+relieve andino) no están en el entrenamiento. Para uso operativo en el Perú, la conclusión práctica es
+que se necesitan ejemplos locales, ya sea afinando con unos pocos chips etiquetados de eventos peruanos,
+y fuentes auxiliares (DEM, óptico) antes de confiar en un modelo entrenado en otras regiones.
+
+\paragraph{Reproducibilidad.} Todo el pipeline (descarga, ablación, evaluación y figuras) corre con
+\texttt{python run\_all.py}; ver el README del repositorio.
+
+{\small
+\bibliographystyle{plain}
+\bibliography{refs}
+}
+
+\end{document}
