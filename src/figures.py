@@ -49,26 +49,40 @@ def save(fig, path):
     print("  ->", path)
 
 
+def run_curve(runs, parts):
+    ys, pre_len = [], None
+    for part in parts:
+        h = json.loads((runs / part / "history.json").read_text())
+        pre_len = pre_len if pre_len is not None else len(h)
+        ys += [r["iou"] for r in h]
+    return np.array(ys), (pre_len if len(parts) > 1 else None)
+
+
 def plot_curves(summary, runs, out):
-    fig, ax = plt.subplots(figsize=(6.4, 3.4))
-    for i, exp in enumerate(summary["experiments"]):
-        hist, offset = [], 0
-        for part in exp["parts"]:
-            h = json.loads((runs / part / "history.json").read_text())
-            hist += [(r["epoch"] + offset, r["iou"]) for r in h]
-            offset += len(h)
-        x, y = zip(*hist)
-        c = SERIES[i % len(SERIES)]
-        ax.plot(x, y, color=c, lw=2, label=exp["label"])
-        ax.annotate(f"{max(y):.3f}", (x[-1], y[-1]), xytext=(4, 0), textcoords="offset points",
-                    color=INK2, fontsize=8, va="center")
-        if len(exp["parts"]) > 1:
-            ax.axvline(len(json.loads((runs / exp["parts"][0] / "history.json").read_text())) + 0.5,
-                       color=c, lw=1, ls=":")
-    ax.set_xlabel("Época")
-    ax.set_ylabel("IoU agua (validación)")
-    ax.set_ylim(bottom=0)
-    ax.legend(loc="lower right", fontsize=8)
+    """Media entre semillas (línea) y rango mín–máx (banda). (a) datos, (b) pérdida."""
+    exps = summary["experiments"]
+    groups = [("(a) Estrategia de datos · BCE+Dice", exps[:3]),
+              ("(b) Función de pérdida", [e for e in exps if e["strategy"] == exps[3]["strategy"]
+                                          and e["loss"] in ("bce_dice", "bce", "dice")])]
+    fig, axes = plt.subplots(1, 2, figsize=(9.6, 3.3), sharey=True)
+    for ax, (title, group) in zip(axes, groups):
+        for i, exp in enumerate(group):
+            curves = [run_curve(runs, r["parts"]) for r in exp["runs"]]
+            ys = np.stack([c[0] for c in curves])
+            x = np.arange(1, ys.shape[1] + 1)
+            c = SERIES[i]
+            label = exp["label"].split(" · ")[0 if ax is axes[0] else 1]
+            ax.fill_between(x, ys.min(0), ys.max(0), color=c, alpha=0.15, lw=0)
+            ax.plot(x, ys.mean(0), color=c, lw=2, label=label)
+            ax.annotate(f"{ys.mean(0)[-1]:.2f}", (x[-1], ys.mean(0)[-1]), xytext=(4, 0),
+                        textcoords="offset points", color=INK2, fontsize=8, va="center")
+            if curves[0][1]:
+                ax.axvline(curves[0][1] + 0.5, color=c, lw=1, ls=":")
+        ax.set_title(title)
+        ax.set_xlabel("Época")
+        ax.set_ylim(0, 0.75)
+        ax.legend(loc="lower right", fontsize=8)
+    axes[0].set_ylabel(f"IoU agua (validación)\nmedia de {len(exps[0]['runs'])} semillas")
     save(fig, out / "curves.png")
 
 
@@ -211,7 +225,7 @@ def main():
     runs, root = Path(args.runs_dir), Path(args.root)
     out = runs / "figures"
     out.mkdir(parents=True, exist_ok=True)
-    summary = json.loads((runs / "summary.json").read_text())
+    summary = json.loads((runs / "summary.json").read_text(encoding="utf-8"))
     best_dir = runs / summary["best"]
     device = "cuda" if torch.cuda.is_available() else "cpu"
 

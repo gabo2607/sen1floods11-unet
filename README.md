@@ -29,11 +29,16 @@ python run_all.py
    omisión, comisión y matriz de confusión.
 5. **Figuras** para el informe: curvas, matrices de confusión, IoU por evento y paneles de errores.
 
+**Dos rondas de entrenamiento.** En la ronda 1 cada experimento se entrena una vez (semilla 0); con
+ella se elige la estrategia de datos para la ablación de pérdida. Como el IoU de validación oscila
+bastante entre épocas, en la ronda 2 se repiten los 5 experimentos con las semillas 1 y 2, y todas las
+tablas reportan **media ± desviación estándar sobre 3 semillas**.
+
 Todos los experimentos usan el **mismo número de pasos de optimización** (40 épocas × 31 pasos ×
 lotes de 8 recortes de 256×256), de modo que se comparan a igual cómputo. El mejor modelo se elige
 **solo por IoU de validación**; test y Bolivia no se usan para tomar decisiones.
 
-En Colab (GPU T4) se estima alrededor de una hora; usa el notebook `notebooks/colab.ipynb`, que
+En Colab (GPU T4) cada entrenamiento tarda unos 6 minutos (≈1.5 h en total); usa el notebook `notebooks/colab.ipynb`, que
 guarda los resultados en Google Drive y se puede reanudar. Prueba de humo en un par de minutos:
 `python run_all.py --quick`.
 
