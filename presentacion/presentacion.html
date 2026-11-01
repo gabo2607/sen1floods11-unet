@@ -216,7 +216,7 @@ tr.hl td{background:var(--cream);font-weight:700}
       <img class="fig" src="img/confusion_test.png" alt="Matriz de confusión del test" style="width:270px;flex:none">
       <div class="col" style="flex:1">
         <div class="row" style="gap:10px">
-          <div class="stat hi"><div class="v" data-v="single.test.iou"></div><div class="l">IoU agua</div></div>
+          <div class="stat hi"><div class="v" data-v="single.test.iou"></div><div class="l">IoU agua · modelo final (semilla 1)</div></div>
           <div class="stat"><div class="v" data-v="single.test.f1"></div><div class="l">F1</div></div>
           <div class="stat"><div class="v" data-v="single.test.precision"></div><div class="l">precisión</div></div>
           <div class="stat"><div class="v" data-v="single.test.recall"></div><div class="l">recall</div></div>
@@ -248,7 +248,7 @@ tr.hl td{background:var(--cream);font-weight:700}
   <div class="body">
     <h2>Entregable 4 · Brecha: Bolivia sí, Lima no. ¿Por qué?</h2>
     <div class="row" style="margin-bottom:10px">
-      <div class="stat"><div class="v" data-m="best.test"></div><div class="l">IoU test (eventos vistos)</div></div>
+      <div class="stat"><div class="v" data-m="best.test"></div><div class="l">IoU test (media de 3 semillas)</div></div>
       <div class="stat"><div class="v" data-m="best.bol"></div><div class="l">IoU Bolivia (nunca vista): brecha pequeña</div></div>
       <div class="stat hi"><div class="v" data-m="best.lima"></div><div class="l">IoU Lima 2017: colapso de todos los modelos</div></div>
     </div>
@@ -298,15 +298,15 @@ tr.hl td{background:var(--cream);font-weight:700}
       <div class="col" style="flex:1;gap:8px">
         <p class="ask" style="margin:0">“Añadir bandas ópticas en chips sin nubes y cuantificar si la fusión mejora el IoU.”</p>
         <div class="row" style="gap:10px">
-          <div class="stat"><div class="v" id="bono-sar">—</div><div class="l">IoU test · solo SAR (2 canales)</div></div>
-          <div class="stat hi"><div class="v" id="bono-fus">—</div><div class="l">IoU test · SAR + 6 bandas ópticas</div></div>
+          <div class="stat"><div class="v" id="bono-sar">—</div><div class="l">Solo SAR · test sin nubes (56 chips)</div></div>
+          <div class="stat hi"><div class="v" id="bono-fus">—</div><div class="l">SAR + 6 bandas ópticas · mismos 56 chips</div></div>
         </div>
-        <div class="card"><h3>Mismos 142 chips sin nubes, 3 semillas</h3><p>El agua absorbe casi todo el infrarrojo y se separa con nitidez de vegetación, suelo húmedo y ciudad: justo los errores del radar.</p></div>
+        <div class="card"><h3>Solo chips sin nubes: por eso 0.662 y no 0.652</h3><p class="small" style="margin:0 0 4px">Ambos modelos: mismos 142 chips de entreno y 56 de test, 3 semillas.</p><p>El agua absorbe casi todo el infrarrojo y se separa con nitidez de vegetación, suelo húmedo y ciudad: justo los errores del radar.</p></div>
         <div class="card alert"><h3>Pero solo existe sin nubes</h3><p>Se descartó el 44 % de los chips; en una tormenta casi nunca hay imagen óptica. Y las etiquetas doradas se dibujaron con ayuda del óptico. El radar sigue siendo la base.</p></div>
       </div>
       <div style="flex:1.05">
         <div class="cap" style="margin-bottom:8px">Conclusiones</div>
-        <div class="concl"><div class="n">01</div><div class="t">Una U-Net propia, solo con radar, logra un IoU de <b data-m="best.test"></b> en test (media de 3 semillas); su error típico es la omisión.</div></div>
+        <div class="concl"><div class="n">01</div><div class="t">Una U-Net propia, solo con radar, logra un IoU de <b data-m="best.test"></b> en el test completo (90 chips, media de 3 semillas); su error típico es la omisión.</div></div>
         <div class="concl"><div class="n">02</div><div class="t">Las etiquetas débiles no ayudaron: mezclarlas resta ~0.07 de IoU. La pérdida casi no importa.</div></div>
         <div class="concl"><div class="n">03</div><div class="t">Repetir con 3 semillas separó las diferencias reales del azar.</div></div>
         <div class="concl"><div class="n">04</div><div class="t">Generaliza a Bolivia, no a Lima 2017: allí el agua no se ve oscura y la etiqueta es de otra fecha.</div></div>
